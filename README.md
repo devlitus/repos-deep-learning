@@ -186,8 +186,6 @@ predict_new_houses(modelo, casas_nuevas)
 
 ### 🚢 Análisis de Supervivencia del Titanic
 
-### 🚢 Análisis de Supervivencia del Titanic
-
 ```python
 import pickle
 import pandas as pd
