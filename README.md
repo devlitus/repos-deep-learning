@@ -1,5 +1,11 @@
 # 🏠 Predictor de Precios de Casas
 
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.7.2-orange.svg)](https://scikit-learn.org/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![GitHub repo](https://img.shields.io/badge/GitHub-repos--deep--learning-181717?logo=github)](https://github.com/devlitus/repos-deep-learning)
+
 Un proyecto de machine learning para predecir precios de viviendas usando regresión lineal múltiple. Este sistema analiza características como tamaño, ubicación y antigüedad para estimar el valor de mercado de propiedades inmobiliarias.
 
 ## 🎯 Características del Proyecto
