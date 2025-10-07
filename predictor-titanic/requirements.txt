@@ -3,3 +3,5 @@ numpy
 matplotlib
 seaborn
 streamlit
+scikit-learn
+protobuf<6.0.0  # Compatibilidad con google-ai-generativelanguage

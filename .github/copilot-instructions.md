@@ -32,6 +32,27 @@ DATA_RAW_DIR = os.path.join(BASE_DIR, 'data', 'raw')
 # ... NUNCA rutas relativas hardcodeadas
 ```
 
+### Patrón de Rutas en Mensajes/UI
+
+**Principio:** Rutas **ABSOLUTAS** internamente, **RELATIVAS** en mensajes al usuario
+
+```python
+# ✅ CORRECTO: Funcionalidad usa rutas absolutas
+model_path = config.MODEL_FILE  # Ruta absoluta completa
+joblib.dump(model, model_path)
+
+# ✅ CORRECTO: UI muestra solo nombre de archivo
+display_name = os.path.basename(model_path)
+print(f"💾 Modelo guardado: {display_name}")
+# Output: "💾 Modelo guardado: titanic_random_forest.pkl"
+
+# ❌ INCORRECTO: Mostrar ruta completa en UI
+print(f"💾 Modelo guardado: {model_path}")
+# Output: "💾 Modelo guardado: C:\dev\repos\predictor-titanic\models\titanic_random_forest.pkl"
+```
+
+**Razón:** Mejor UX sin comprometer robustez del código.
+
 ## 🔄 Flujo de Trabajo Estándar
 
 ### Orden de ejecución en `main.py`:
@@ -106,13 +127,37 @@ df['is_alone'] = (df['family_size'] == 1).astype(int)
 ## 💾 Persistencia de Modelos
 
 ```python
-# Guardar con pickle (no joblib)
+# Guardar con pickle (no joblib en predictor-house, joblib en predictor-titanic)
+# predictor-house usa pickle
 with open(MODEL_FILE, 'wb') as f:
     pickle.dump(modelo, f)
 
-# Cargar
+# predictor-titanic usa joblib
+joblib.dump(modelo, MODEL_FILE)
+
+# Cargar (según el proyecto)
 with open(MODEL_FILE, 'rb') as f:
     modelo = pickle.load(f)
+# O
+modelo = joblib.load(MODEL_FILE)
+```
+
+### Patrón de Mensajes al Guardar/Cargar
+
+```python
+# ✅ SIEMPRE: Mostrar solo nombre de archivo en mensajes
+import os
+
+def save_model(model, filepath):
+    joblib.dump(model, filepath)  # ← Usa ruta absoluta
+    display_name = os.path.basename(filepath)  # ← Extrae nombre
+    print(f"💾 Modelo guardado: {display_name}")  # ← Muestra nombre limpio
+
+def load_model(filepath):
+    model = joblib.load(filepath)  # ← Usa ruta absoluta
+    display_name = os.path.basename(filepath)
+    print(f"✅ Modelo cargado: {display_name}")
+    return model
 ```
 
 ## 🧪 Testing y Debugging

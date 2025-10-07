@@ -8,9 +8,14 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import joblib
 
 # Importar nuestras funciones de preprocesamiento
+from pathlib import Path
 import sys
-sys.path.append('../src')
+# Añadir el directorio raíz al path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from data_preprocessing import preprocess_titanic_data, split_features_target
+import config
 
 
 def train_random_forest_classifier(X_train, y_train, random_state=42):
@@ -34,14 +39,9 @@ def train_random_forest_classifier(X_train, y_train, random_state=42):
     
     print("\n🌲 Entrenando Random Forest Classifier...")
     
-    # Crear el modelo
-    model = RandomForestClassifier(
-        n_estimators=100,      # Número de árboles
-        max_depth=10,          # Profundidad máxima de cada árbol
-        min_samples_split=5,   # Mínimo de muestras para dividir un nodo
-        min_samples_leaf=2,    # Mínimo de muestras en una hoja
-        random_state=random_state
-    )
+    # Crear el modelo usando configuración centralizada
+    # Los valores son idénticos a los hardcodeados previamente
+    model = RandomForestClassifier(**config.MODEL_PARAMS)
     
     # Entrenar el modelo
     model.fit(X_train, y_train)
@@ -206,9 +206,21 @@ def visualize_results(model, X_test, y_test, y_pred, feature_importance):
 def save_model(model, filename='titanic_model.pkl'):
     """
     Guarda el modelo entrenado
+    
+    Parámetros:
+    -----------
+    model : RandomForestClassifier
+        Modelo entrenado a guardar
+    filename : str
+        Ruta completa (absoluta) al archivo. Se usa internamente,
+        pero el mensaje muestra solo el nombre del archivo (UX)
     """
     joblib.dump(model, filename)
-    print(f"\n💾 Modelo guardado como: {filename}")
+    
+    # Extraer solo el nombre del archivo para mejor UX
+    import os
+    display_name = os.path.basename(filename)
+    print(f"\n💾 Modelo guardado: {display_name}")
 
 
 # ============================================

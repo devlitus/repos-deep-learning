@@ -3,6 +3,14 @@ import pandas as pd
 import numpy as np
 import joblib
 import os
+import sys
+from pathlib import Path
+
+# Añadir el directorio raíz al path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+import config
 
 # Configuración de la página
 st.set_page_config(
@@ -17,21 +25,18 @@ st.set_page_config(
 @st.cache_resource
 def load_model():
     """
-    Carga el modelo entrenado
+    Carga el modelo entrenado desde la ruta configurada
     @st.cache_resource mantiene el modelo en memoria
     """
-    # Intentar cargar desde diferentes ubicaciones
-    possible_paths = [
-        '../models/titanic_random_forest.pkl',
-    ]
-    
-    for path in possible_paths:
-        if os.path.exists(path):
-            model = joblib.load(path)
-            st.success(f"✅ Modelo cargado desde: {path}")
-            return model
+    if os.path.exists(config.MODEL_FILE):
+        model = joblib.load(config.MODEL_FILE)
+        # Mostrar solo el nombre del archivo para mejor UX
+        display_name = os.path.basename(config.MODEL_FILE)
+        st.success(f"✅ Modelo cargado: {display_name}")
+        return model
     
     st.error("❌ No se encontró el modelo. Asegúrate de haber entrenado el modelo primero.")
+    st.info("💡 Ejecuta: python main.py desde el directorio predictor-titanic")
     return None
 
 # ============================================
