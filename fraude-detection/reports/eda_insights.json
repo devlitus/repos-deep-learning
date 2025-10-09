@@ -1,0 +1,14 @@
+{
+    "total_transactions": 284807,
+    "fraud_count": 492,
+    "legitimate_count": 284315,
+    "imbalance_ratio": 577.8760162601626,
+    "fraud_amount_median": 9.25,
+    "legitimate_amount_median": 22.0,
+    "top_correlated_features": [
+        "V17",
+        "V14",
+        "V12",
+        "V10"
+    ]
+}
