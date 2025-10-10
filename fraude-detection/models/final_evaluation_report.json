@@ -1,0 +1,21 @@
+{
+    "Modelo": "RandomForestClassifier",
+    "Fecha_Evaluacion": "2025-10-09 22:11:18",
+    "Total_Transacciones_Test": 56962,
+    "Fraudes_Reales": 98,
+    "Precision": 0.4692737430167598,
+    "Recall": 0.8571428571428571,
+    "F1_Score": 0.6064981949458483,
+    "ROC_AUC": 0.9801454311324981,
+    "True_Positives": 84,
+    "False_Positives": 95,
+    "True_Negatives": 56769,
+    "False_Negatives": 14,
+    "Fraudes_Detectados_Pct": 85.71428571428571,
+    "Fraudes_Perdidos_Pct": 14.285714285714285,
+    "Falsas_Alarmas_Pct": 0.16706527855936973,
+    "Beneficio_Neto_USD": 8125,
+    "Ahorro_Fraudes_Bloqueados_USD": 12600,
+    "Costo_Fraudes_Perdidos_USD": 2100,
+    "Costo_Falsas_Alarmas_USD": 2375
+}
