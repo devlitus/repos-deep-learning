@@ -1,0 +1,2 @@
+Modelo,Fecha_Evaluacion,Total_Transacciones_Test,Fraudes_Reales,Precision,Recall,F1_Score,ROC_AUC,True_Positives,False_Positives,True_Negatives,False_Negatives,Fraudes_Detectados_Pct,Fraudes_Perdidos_Pct,Falsas_Alarmas_Pct,Beneficio_Neto_USD,Ahorro_Fraudes_Bloqueados_USD,Costo_Fraudes_Perdidos_USD,Costo_Falsas_Alarmas_USD
+RandomForestClassifier,2025-10-09 22:11:18,56962,98,0.4692737430167598,0.8571428571428571,0.6064981949458483,0.9801454311324981,84,95,56769,14,85.71428571428571,14.285714285714285,0.16706527855936973,8125,12600,2100,2375
