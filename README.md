@@ -14,6 +14,36 @@ Repositorio educativo con **tres proyectos independientes de Machine Learning** 
 
 Cada proyecto incluye pipeline completo: carga de datos → preprocesamiento → entrenamiento → evaluación → predicciones.
 
+## 🚀 Guía Rápida
+
+### ¿Eres principiante en ML?
+
+- 🏠 **Empieza con `predictor-house/`**: Regresión simple y conceptos básicos
+- 📚 Lee los notebooks de `fraude-detection/notebooks/` para análisis paso a paso
+
+### ¿Buscas un desafío técnico?
+
+- 💳 **`fraude-detection/`**: Datos desbalanceados, SMOTE y producción
+- 🚢 **`predictor-titanic/`**: Feature engineering y clasificación avanzada
+
+### ¿Quieres ver aplicaciones web?
+
+- 🏠 `predictor-house/app.py` - Predicción de precios interactiva
+- 💳 `fraude-detection/web/app.py` - Dashboard completo de detección de fraude
+
+### ¿Solo quieres ejecutar algo rápido?
+
+```bash
+# Proyecto más simple
+cd predictor-house && python main.py
+
+# Proyecto con mejor visualización
+cd fraude-detection && streamlit run web/app.py
+
+# Análisis completo con notebooks
+cd fraude-detection && jupyter notebook notebooks/
+```
+
 ## 🎯 Proyectos Incluidos
 
 ### 🏠 Predictor de Precios de Casas (`predictor-house/`)
@@ -70,7 +100,21 @@ Cada proyecto incluye pipeline completo: carga de datos → preprocesamiento →
 
 **Métricas de evaluación**: Accuracy (~99.9%), Precision (95%), Recall (85%), F1-Score (90%), AUC-ROC (0.95)
 
-## 📁 Estructura del Repositorio
+## � Comparación de Proyectos
+
+| Característica        | 🏠 Predictor Casas | 🚢 Predictor Titanic     | 💳 Detección Fraude          |
+| --------------------- | ------------------ | ------------------------ | ---------------------------- |
+| **Tipo de ML**        | Regresión          | Clasificación Balanceada | Clasificación Desbalanceada  |
+| **Dataset**           | Sintético + Kaggle | Seaborn (Titanic)        | Kaggle (284K transacciones)  |
+| **Dificultad**        | ⭐⭐               | ⭐⭐⭐                   | ⭐⭐⭐⭐                     |
+| **Tamaño Dataset**    | Pequeño            | Mediano                  | Grande                       |
+| **Desafío Principal** | Multicolinealidad  | Datos faltantes          | Datos desbalanceados (0.17%) |
+| **Técnicas Clave**    | Regresión lineal   | Feature engineering      | SMOTE, balanceo              |
+| **Aplicación Web**    | Streamlit simple   | Sin web                  | Streamlit multipágina        |
+| **Notebooks**         | 1 opcional         | 1 básico                 | 4 completos                  |
+| **Estado**            | ✅ Completo        | ✅ Completo              | ✅ Completo                  |
+
+## �📁 Estructura del Repositorio
 
 ```
 repos-deep-learning/
@@ -649,22 +693,117 @@ Este proyecto está bajo la licencia **MIT**. Ver el archivo [`LICENSE`](LICENSE
 
 ---
 
+## 🗂️ Índice de Navegación
+
+- [🚀 Guía Rápida](#-guía-rápida) - Para principiantes y usuarios rápidos
+- [🎯 Proyectos Incluidos](#-proyectos-incluidos) - Detalles de cada proyecto
+- [📊 Comparación de Proyectos](#-comparación-de-proyectos) - Tabla comparativa
+- [📁 Estructura del Repositorio](#-estructura-del-repositorio) - Organización de archivos
+- [🚀 Instalación y Uso](#-instalación-y-uso) - Pasos para ejecutar
+- [📊 Ejemplos de Uso](#-ejemplos-de-uso) - Código práctico
+- [📋 Datasets Utilizados](#-datasets-utilizados) - Información de datos
+- [🔬 Rendimiento de los Modelos](#-rendimiento-de-los-modelos) - Métricas y resultados
+- [📈 Visualizaciones y Análisis](#-visualizaciones-y-análisis) - Gráficos y dashboards
+- [🛠️ Tecnologías Utilizadas](#-tecnologías-utilizadas) - Stack técnico
+- [🎓 Conceptos de Machine Learning](#-conceptos-de-machine-learning-aplicados) - Técnicas implementadas
+- [👨‍💻 Autor y Propósito](#-autor-y-propósito) - Contexto educativo
+- [📝 Próximas Mejoras](#-próximas-mejoras) - Roadmap del proyecto
+
 ## 🤝 Contribuciones
 
-Las contribuciones son bienvenidas. Para contribuir:
+Las contribuciones son bienvenidas y muy valoradas. Para contribuir:
 
-1. Fork del repositorio
-2. Crear rama feature (`git checkout -b feature/nueva-caracteristica`)
-3. Commit de cambios (`git commit -am 'Añadir nueva característica'`)
-4. Push a la rama (`git push origin feature/nueva-caracteristica`)
-5. Crear Pull Request
+### 📋 Pasos para Contribuir
 
-**Guías de contribución**:
+1. **Fork del repositorio**
 
-- Seguir la estructura modular existente
-- Actualizar READMEs si se añaden features
-- Mantener compatibilidad con pandas 3.0 (evitar chained assignment)
-- Documentar funciones y añadir prints descriptivos
+   ```bash
+   git clone https://github.com/tu-usuario/repos-deep-learning.git
+   cd repos-deep-learning
+   ```
+
+2. **Crear rama para tu feature**
+
+   ```bash
+   git checkout -b feature/nueva-caracteristica
+   ```
+
+3. **Realizar cambios y commit**
+
+   ```bash
+   git add .
+   git commit -m 'Añadir: [descripción concisa del cambio]'
+   ```
+
+4. **Push y Pull Request**
+   ```bash
+   git push origin feature/nueva-caracteristica
+   ```
+   Luego crea un Pull Request en GitHub.
+
+### 📝 Guías de Contribución
+
+#### Código y Estructura
+
+- ✅ **Mantener arquitectura modular**: No mezclar responsabilidades
+- ✅ **Seguir convenciones de nombres**: `snake_case` para archivos y funciones
+- ✅ **Usar rutas absolutas**: Siempre `config.py` para paths
+- ✅ **Pandas 3.0 ready**: Evitar `df['col'].fillna(value, inplace=True)`
+- ✅ **Documentar funciones**: Añadir docstrings y prints descriptivos
+
+#### Documentación
+
+- ✅ **Actualizar README**: Si añades features o mejoras significativas
+- ✅ **Mantener sincronía**: Los badges y versiones deben ser consistentes
+- ✅ **Ejemplos prácticos**: Incluir código de uso en READMEs
+
+#### Calidad
+
+- ✅ **Pruebas**: Añadir tests unitarios para nuevas funcionalidades
+- ✅ **Reproducibilidad**: Usar `random_state=42` para splits y modelos
+- ✅ **Versionado**: Actualizar `requirements.txt` si se añaden dependencias
+
+### 🎨 Estilo del Código
+
+- **Black**: Formato automático de código
+- **Type hints**: Usar anotaciones de tipo cuando sea posible
+- **Comentarios**: Explicar el "porqué" no solo el "qué"
+- **Logs**: Usar prints formateados con emojis para claridad
+
+### 🏆 Tipos de Contribuciones Bienvenidas
+
+#### 📚 Documentación
+
+- Mejora de READMEs
+- Añadir ejemplos de uso
+- Traducción a otros idiomas
+- Guías de aprendizaje
+
+#### 🐛 Bug Fixes
+
+- Corrección de errores en pipelines
+- Mejora de preprocesamiento
+- Optimización de rendimiento
+
+#### ✨ Nuevas Features
+
+- Nuevos algoritmos de ML
+- Visualizaciones avanzadas
+- APIs para aplicaciones
+- Nuevos datasets
+
+#### 📊 Análisis y Experimentos
+
+- Comparación de modelos
+- Análisis de feature importance
+- Métricas de rendimiento mejoradas
+- Estudios de casos
+
+### 📞 ¿Necesitas ayuda?
+
+- Abre un [issue](https://github.com/devlitus/repos-deep-learning/issues) para preguntas
+- Revisa las [instrucciones para agentes IA](.github/copilot-instructions.md)
+- Explora los [notebooks existentes](fraude-detection/notebooks/) como referencia
 
 ---
 
