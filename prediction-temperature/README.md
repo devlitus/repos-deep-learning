@@ -224,6 +224,26 @@ secuencia = np.array([...])  # 60 temperaturas normalizadas
 prediccion = model.predict(secuencia)
 ```
 
+### Aplicación Web Interactiva
+
+Ejecutar la interfaz web Streamlit:
+
+```bash
+streamlit run web/app.py
+```
+
+**Características:**
+- 📝 Ingreso manual de temperaturas (60 últimos días)
+- 📊 Datos de demostración realistas
+- 🔮 Predicción instantánea
+- 📈 Visualización de resultados
+- 🎯 Rango de confianza (±RMSE)
+
+**Acceder:**
+- La app se abre en `http://localhost:8501`
+- Disponible desde cualquier navegador
+- No requiere conocimiento técnico
+
 ### Modificar Hiperparámetros
 
 Edita `config.py` o `train.py`:

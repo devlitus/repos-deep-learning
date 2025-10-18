@@ -17,3 +17,9 @@ tensorflow
 
 # seaborn: Gráficas más bonitas (opcional pero útil)
 seaborn
+
+# streamlit: Framework para crear aplicaciones web interactivas
+streamlit
+
+# plotly: Gráficas interactivas (opcional)
+plotly
