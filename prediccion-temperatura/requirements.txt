@@ -1,0 +1,19 @@
+# Librerías necesarias para el proyecto de predicción de temperatura
+
+# numpy: Para operaciones matemáticas y matrices
+numpy
+
+# pandas: Para manejar datos en formato tabla (como Excel)
+pandas
+
+# matplotlib: Para crear gráficas
+matplotlib
+
+# scikit-learn: Herramientas de Machine Learning (incluye normalización)
+scikit-learn
+
+# tensorflow: Framework para crear redes neuronales (incluye LSTM)
+tensorflow
+
+# seaborn: Gráficas más bonitas (opcional pero útil)
+seaborn
