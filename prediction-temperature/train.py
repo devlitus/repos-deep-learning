@@ -35,6 +35,9 @@ import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
 
+# Importar callbacks de TensorFlow/Keras
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+
 # Importar módulos del proyecto
 print("\n" + "="*70)
 print("🚀 INICIANDO PIPELINE DE MACHINE LEARNING")
@@ -113,24 +116,45 @@ def train_model():
     model.summary()
     print()
     
-    # PASO 5: ENTRENAR MODELO
+    # PASO 5: ENTRENAR MODELO CON CALLBACKS INTELIGENTES
     print("\n" + "="*70)
-    print("🏋️  PASO 5: ENTRENANDO MODELO")
+    print("🏋️  PASO 5: ENTRENANDO MODELO CON CALLBACKS")
     print("="*70 + "\n")
-    
+
+    # Configurar callbacks inteligentes
+    print("⚙️  Configurando callbacks inteligentes...")
+    callbacks = [
+        EarlyStopping(
+            monitor='val_loss',
+            patience=15,
+            restore_best_weights=True,
+            verbose=1
+        ),
+        ReduceLROnPlateau(
+            monitor='val_loss',
+            factor=0.5,
+            patience=5,
+            min_lr=1e-6,
+            verbose=1
+        )
+    ]
+    print("   ✅ EarlyStopping: Para automáticamente si no hay mejora")
+    print("   ✅ ReduceLROnPlateau: Reduce learning rate cuando se estanca\n")
+
     print("🔥 Iniciando entrenamiento...")
     print("   Esto puede tomar 5-10 minutos dependiendo del hardware")
     print("   Progreso:\n")
-    
+
     history = model.fit(
         X_train, y_train,
         epochs=50,
         batch_size=32,
         validation_data=(X_val, y_val),
+        callbacks=callbacks,
         verbose=1,
         shuffle=False
     )
-    
+
     print("\n✅ Entrenamiento completado!\n")
     
     # PASO 6: EVALUAR MODELO

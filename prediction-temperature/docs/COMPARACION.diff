@@ -1,0 +1,375 @@
+--- /c/dev/repos-deep-learning/prediction-temperature/train.py	2025-10-18 10:58:20.851972200 +0200
++++ /c/dev/repos-deep-learning/prediction-temperature/train_improved.py	2025-10-18 18:28:32.635866600 +0200
+@@ -1,6 +1,6 @@
+ """
+ ═══════════════════════════════════════════════════════════════
+-SCRIPT PRINCIPAL: ENTRENAMIENTO DEL MODELO
++SCRIPT PRINCIPAL: ENTRENAMIENTO DEL MODELO (VERSIÓN MEJORADA)
+ ═══════════════════════════════════════════════════════════════
+ 
+ Este script ejecuta TODO el pipeline de Machine Learning:
+@@ -8,7 +8,7 @@
+ 1. 📂 Carga de datos
+ 2. 🔧 Preprocesamiento
+ 3. 🧠 Construcción del modelo
+-4. 🏋️  Entrenamiento
++4. 🏋️  Entrenamiento (CON CALLBACKS INTELIGENTES ✨)
+ 5. 📊 Evaluación
+ 6. 📈 Visualización
+ 7. 💾 Guardado de resultados
+@@ -18,13 +18,10 @@
+ ═══════════════════════════════════════════════════════════════
+ 
+ Desde terminal:
+-    python train.py
+-
+-Desde Jupyter/Colab:
+-    %run train.py
++    python train_improved.py
+ 
+ O importar la función:
+-    from train import train_model
++    from train_improved import train_model
+     train_model()
+ 
+ ═══════════════════════════════════════════════════════════════
+@@ -35,9 +32,20 @@
+ import warnings
+ warnings.filterwarnings('ignore')
+ 
++# ═══════════════════════════════════════════════════════════════
++# IMPORTAR CALLBACKS (✨ MEJORA NUEVA ✨)
++# ═══════════════════════════════════════════════════════════════
++# Estos callbacks harán el entrenamiento más inteligente:
++#
++# EarlyStopping:     Si el modelo no mejora, para automáticamente
++# ReduceLROnPlateau: Si se estanca, reduce la velocidad de aprendizaje
++# ═══════════════════════════════════════════════════════════════
++
++from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
++
+ # Importar módulos del proyecto
+ print("\n" + "="*70)
+-print("🚀 INICIANDO PIPELINE DE MACHINE LEARNING")
++print("🚀 INICIANDO PIPELINE DE MACHINE LEARNING (VERSIÓN MEJORADA)")
+ print("="*70 + "\n")
+ 
+ print("📦 Importando módulos del proyecto...")
+@@ -61,129 +69,210 @@
+     """
+     Función principal que ejecuta todo el pipeline
+     """
+-    
++
+     # PASO 1: CARGAR DATOS
+     print("="*70)
+     print("📂 PASO 1: CARGANDO DATOS")
+     print("="*70 + "\n")
+-    
++
+     df, data_normalized, scaler = load_melbourne_data()
+-    
++
+     print(f"✅ Datos cargados: {len(df)} días de temperaturas")
+     print(f"   Rango: {df['Temp'].min():.1f}°C - {df['Temp'].max():.1f}°C")
+     print(f"   Promedio: {df['Temp'].mean():.1f}°C\n")
+-    
++
+     # PASO 2: VISUALIZAR DATOS ORIGINALES
+     print("="*70)
+     print("📈 PASO 2: VISUALIZANDO DATOS HISTÓRICOS")
+     print("="*70 + "\n")
+-    
++
+     plot_temperature_history(df)
+-    
++
+     # PASO 3: PREPROCESAR DATOS
+     print("\n" + "="*70)
+     print("🔧 PASO 3: PREPROCESANDO DATOS")
+     print("="*70 + "\n")
+-    
++
+     print("🔄 Creando secuencias de 60 días...")
+     X, y = create_sequences(data_normalized, time_steps=60)
+-    
++
+     print(f"✅ Secuencias creadas: {len(X)}")
+     print(f"   Cada secuencia: 60 días → predice siguiente día\n")
+-    
++
+     print("✂️  Dividiendo en conjuntos Train/Val/Test...")
+     X_train, X_val, X_test, y_train, y_val, y_test = split_data(X, y)
+-    
++
+     print(f"✅ Datos divididos:")
+     print(f"   Entrenamiento: {len(X_train)} secuencias ({len(X_train)/len(X)*100:.1f}%)")
+     print(f"   Validación:    {len(X_val)} secuencias ({len(X_val)/len(X)*100:.1f}%)")
+     print(f"   Prueba:        {len(X_test)} secuencias ({len(X_test)/len(X)*100:.1f}%)\n")
+-    
++
+     # PASO 4: CONSTRUIR MODELO
+     print("="*70)
+     print("🧠 PASO 4: CONSTRUYENDO MODELO LSTM")
+     print("="*70 + "\n")
+-    
++
+     model = build_lstm_model(time_steps=60)
+-    
++
+     print("✅ Modelo construido")
+     print(f"   Parámetros entrenables: {model.count_params():,}\n")
+-    
++
+     print("📐 Arquitectura del modelo:")
+     model.summary()
+     print()
+-    
+-    # PASO 5: ENTRENAR MODELO
++
++    # ═══════════════════════════════════════════════════════════════
++    # PASO 5: CONFIGURAR CALLBACKS (✨ MEJORA NUEVA ✨)
++    # ═══════════════════════════════════════════════════════════════
++
+     print("\n" + "="*70)
+-    print("🏋️  PASO 5: ENTRENANDO MODELO")
++    print("⚙️  PASO 5: CONFIGURANDO CALLBACKS INTELIGENTES")
+     print("="*70 + "\n")
+-    
++
++    # 📌 EXPLICACIÓN DETALLADA
++    # ═══════════════════════════════════════════════════════════════
++
++    print("📚 CALLBACKS CONFIGURADOS:\n")
++
++    print("1️⃣  EarlyStopping:")
++    print("   • Monitorea: val_loss (pérdida en validación)")
++    print("   • Patience: 15 épocas sin mejora → PARA")
++    print("   • restore_best_weights: Guarda el mejor modelo")
++    print("   • ¿Para qué? Evita overfitting, ahorra tiempo\n")
++
++    print("2️⃣  ReduceLROnPlateau:")
++    print("   • Si val_loss no mejora en 5 épocas...")
++    print("   • Reduce learning_rate a la mitad (factor=0.5)")
++    print("   • min_lr=1e-6: No reduce por debajo de este valor")
++    print("   • ¿Para qué? Ajustes más finos al final del entrenamiento\n")
++
++    # ═══════════════════════════════════════════════════════════════
++    # CREAR LOS CALLBACKS
++    # ═══════════════════════════════════════════════════════════════
++
++    callbacks = [
++        # ────────────────────────────────────────────────────────
++        # CALLBACK 1: EARLY STOPPING
++        # ────────────────────────────────────────────────────────
++        EarlyStopping(
++            monitor='val_loss',              # Monitorear pérdida de validación
++            patience=15,                     # Esperar 15 épocas sin mejora
++            restore_best_weights=True,       # Restaurar mejor modelo
++            verbose=1                        # Mostrar cuándo se para
++        ),
++
++        # ────────────────────────────────────────────────────────
++        # CALLBACK 2: REDUCE LEARNING RATE
++        # ────────────────────────────────────────────────────────
++        ReduceLROnPlateau(
++            monitor='val_loss',              # Monitorear pérdida de validación
++            factor=0.5,                      # Multiplicar learning_rate × 0.5
++            patience=5,                      # Esperar 5 épocas sin mejora
++            min_lr=1e-6,                     # No bajar debajo de 1e-6
++            verbose=1                        # Mostrar cambios
++        )
++    ]
++
++    print("✅ Callbacks configurados\n")
++
++    # PASO 6: ENTRENAR MODELO (CON CALLBACKS)
++    print("="*70)
++    print("🏋️  PASO 6: ENTRENANDO MODELO")
++    print("="*70 + "\n")
++
+     print("🔥 Iniciando entrenamiento...")
+-    print("   Esto puede tomar 5-10 minutos dependiendo del hardware")
+-    print("   Progreso:\n")
+-    
++    print("   • Máximo 50 épocas (puede parar antes con EarlyStopping)")
++    print("   • Si val_loss no mejora en 15 épocas → se detiene")
++    print("   • Si se estanca 5 épocas → reduce velocidad de aprendizaje")
++    print("   • Progreso:\n")
++
++    # ═══════════════════════════════════════════════════════════════
++    # AQUÍ VA EL model.fit() CON CALLBACKS
++    # ═══════════════════════════════════════════════════════════════
++
+     history = model.fit(
+         X_train, y_train,
+         epochs=50,
+         batch_size=32,
+         validation_data=(X_val, y_val),
++        callbacks=callbacks,                 # ✨ AGREGAR CALLBACKS AQUÍ
+         verbose=1,
+         shuffle=False
+     )
+-    
++
+     print("\n✅ Entrenamiento completado!\n")
+-    
+-    # PASO 6: EVALUAR MODELO
++
++    # ═══════════════════════════════════════════════════════════════
++    # INFORMACIÓN SOBRE EARLY STOPPING
++    # ═══════════════════════════════════════════════════════════════
++
+     print("="*70)
+-    print("📊 PASO 6: EVALUANDO MODELO")
++    print("📊 INFORMACIÓN DEL ENTRENAMIENTO")
+     print("="*70 + "\n")
+-    
++
++    total_epochs = len(history.history['loss'])
++
++    print(f"📈 Épocas ejecutadas: {total_epochs} de 50")
++
++    if total_epochs < 50:
++        print(f"   ⏹️  Se detuvo por EarlyStopping (no mejoró en 15 épocas)")
++    else:
++        print(f"   ✅ Completadas todas las épocas (sin early stopping)")
++
++    print(f"   Pérdida final (train): {history.history['loss'][-1]:.6f}")
++    print(f"   Pérdida final (val):   {history.history['val_loss'][-1]:.6f}\n")
++
++    # PASO 7: EVALUAR MODELO
++    print("="*70)
++    print("📊 PASO 7: EVALUANDO MODELO")
++    print("="*70 + "\n")
++
+     predictions, metrics = evaluate_model(model, X_test, y_test, scaler)
+-    
++
+     create_evaluation_report(metrics)
+-    
+-    # PASO 7: CREAR VISUALIZACIONES
++
++    # PASO 8: CREAR VISUALIZACIONES
+     print("\n" + "="*70)
+-    print("📈 PASO 7: CREANDO VISUALIZACIONES")
++    print("📈 PASO 8: CREANDO VISUALIZACIONES")
+     print("="*70 + "\n")
+-    
++
+     print("🎨 Generando gráficas...")
+-    
++
+     y_test_original = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
+     predictions_flat = predictions.flatten()
+-    
++
+     print("   1/4 Progreso del entrenamiento...")
+     plot_training_history(history)
+-    
++
+     print("   2/4 Predicciones vs Realidad...")
+     plot_predictions(y_test_original, predictions_flat)
+-    
++
+     print("   3/4 Gráfica de dispersión...")
+     plot_prediction_scatter(y_test_original, predictions_flat)
+-    
++
+     print("   4/4 Análisis de errores...")
+     plot_errors(y_test_original, predictions_flat)
+-    
++
+     print("\n✅ Todas las gráficas guardadas en carpeta 'reports/'\n")
+-    
+-    # PASO 8: GUARDAR MODELO
++
++    # PASO 9: GUARDAR MODELO
+     print("="*70)
+-    print("💾 PASO 8: GUARDANDO MODELO")
++    print("💾 PASO 9: GUARDANDO MODELO")
+     print("="*70 + "\n")
+-    
++
+     os.makedirs('models', exist_ok=True)
+-    
++
+     model_path = 'models/lstm_temperatura.keras'
+     model.save(model_path)
+-    
++
+     print(f"✅ Modelo guardado en: {model_path}")
+     print(f"   Tamaño: {os.path.getsize(model_path) / (1024*1024):.2f} MB\n")
+-    
++
+     # RESUMEN FINAL
+     print("="*70)
+     print("🎉 PIPELINE COMPLETADO EXITOSAMENTE")
+     print("="*70 + "\n")
+-    
++
+     print("📁 Archivos generados:")
+     print("   📊 reports/temperatura_historica.png - Datos originales")
+     print("   📈 reports/entrenamiento.png         - Progreso del entrenamiento")
+@@ -192,13 +281,13 @@
+     print("   ⚠️  reports/errores.png              - Análisis de errores")
+     print("   📄 reports/metricas.txt              - Reporte de métricas")
+     print("   🧠 models/lstm_temperatura.keras     - Modelo entrenado\n")
+-    
++
+     print("📊 Resumen de resultados:")
+     print(f"   RMSE:  {metrics['RMSE']:.4f}°C")
+     print(f"   MAE:   {metrics['MAE']:.4f}°C")
+     print(f"   MAPE:  {metrics['MAPE']:.2f}%")
+     print(f"   R²:    {metrics['R2']:.4f} ({metrics['R2']*100:.2f}% varianza explicada)")
+-    
++
+     print("\n💡 Interpretación:")
+     if metrics['R2'] >= 0.9:
+         print("   ✅ ¡Excelente! El modelo tiene muy buen desempeño")
+@@ -208,31 +297,29 @@
+         print("   ⚠️  Modelo aceptable, puede mejorar")
+     else:
+         print("   ❌ Modelo necesita mejoras")
+-    
++
+     print("\n🚀 Próximos pasos sugeridos:")
+     print("   1. Revisar las gráficas en carpeta 'reports/'")
+     print("   2. Analizar si hay overfitting en entrenamiento.png")
+     print("   3. Verificar patrones de error en errores.png")
+-    print("   4. Si R² < 0.8, considera:")
+-    print("      - Aumentar épocas (epochs=100)")
+-    print("      - Ajustar arquitectura (más neuronas)")
+-    print("      - Probar diferentes sequence_length")
+-    
++    print("   4. Comparar resultados train.py vs train_improved.py")
++    print("   5. Si mejora, usar train_improved.py como nuevo train.py")
++
+     print("\n" + "="*70)
+     print("✨ ¡Gracias por usar este sistema de predicción!")
+     print("="*70 + "\n")
+-    
++
+     return model, history, metrics
+ 
+ 
+ if __name__ == "__main__":
+     try:
+         model, history, metrics = train_model()
+-        
++
+     except KeyboardInterrupt:
+         print("\n\n⚠️  Entrenamiento interrumpido por el usuario")
+         print("   Los archivos parciales pueden estar en carpeta 'reports/'\n")
+-        
++
+     except Exception as e:
+         print(f"\n\n❌ ERROR durante el entrenamiento:")
+         print(f"   {str(e)}")
+@@ -240,4 +327,4 @@
+         print("   1. El archivo daily-min-temperatures.csv existe en data/")
+         print("   2. Todas las dependencias están instaladas (requirements.txt)")
+         print("   3. Hay suficiente memoria RAM disponible\n")
+-        raise
+\ No newline at end of file
++        raise

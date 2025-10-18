@@ -4,15 +4,15 @@ REPORTE DE EVALUACIÓN - PREDICCIÓN DE TEMPERATURA
 
 MÉTRICAS DE ERROR:
 ------------------------------------------------------------
-MSE  (Mean Squared Error)        : 4.9608
-RMSE (Root Mean Squared Error)   : 2.2273 °C
-MAE  (Mean Absolute Error)       : 1.7547 °C
-MAPE (Mean Abs Percentage Error) : 21.13 %
+MSE  (Mean Squared Error)        : 5.0026
+RMSE (Root Mean Squared Error)   : 2.2367 °C
+MAE  (Mean Absolute Error)       : 1.7581 °C
+MAPE (Mean Abs Percentage Error) : 21.28 %
 
 BONDAD DE AJUSTE:
 ------------------------------------------------------------
-R² (R-squared)                   : 0.7060
-Varianza explicada               : 70.60 %
+R² (R-squared)                   : 0.7035
+Varianza explicada               : 70.35 %
 
 INTERPRETACIÓN:
 ------------------------------------------------------------
