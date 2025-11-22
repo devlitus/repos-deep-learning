@@ -1,0 +1,79 @@
+# ============================================================================
+# DEPENDENCIAS PARA ANÁLISIS DE SENTIMIENTOS (NLP)
+# ============================================================================
+
+# ----- Librerías que ya conoces (de proyectos anteriores) -----
+numpy>=1.26.0
+pandas>=2.2.0
+scikit-learn>=1.3.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
+joblib>=1.3.0
+
+# ----- Deep Learning (ya usaste en prediccion-temperatura) -----
+tensorflow>=2.15.0  # Incluye Keras
+keras>=3.0.0
+
+# ----- NUEVAS LIBRERÍAS DE NLP (Natural Language Processing) -----
+
+# NLTK: Natural Language Toolkit
+# - Preprocesamiento de texto (tokenización, stemming, lemmatization)
+# - Stopwords en múltiples idiomas
+# - Corpus de datos lingüísticos
+nltk>=3.8.1
+
+# spaCy: Procesamiento de lenguaje natural industrial
+# - Lemmatization más precisa que NLTK
+# - Named Entity Recognition (NER)
+# - Part-of-Speech tagging
+spacy>=3.7.0
+
+# TextBlob: API simple para NLP común
+# - Análisis de sentimientos básico
+# - Traducción
+# - Corrección ortográfica
+textblob>=0.17.1
+
+# WordCloud: Visualización de nubes de palabras
+# - Muestra las palabras más frecuentes visualmente
+# - Útil para entender qué palabras dominan los sentimientos
+wordcloud>=1.9.3
+
+# Beautiful Soup: Limpieza de HTML
+# - Remover tags HTML de reviews web
+# - Parsear documentos web
+beautifulsoup4>=4.12.0
+
+# Regex: Expresiones regulares avanzadas
+# - Limpieza de texto más compleja
+regex>=2023.10.3
+
+# ----- Opcional: Embeddings pre-entrenados -----
+
+# gensim: Word2Vec, Doc2Vec, FastText
+# - Entrenar tus propios word embeddings
+# - Usar modelos pre-entrenados (Google News, Wikipedia)
+gensim>=4.3.0
+
+# ----- Web App (opcional, para el futuro) -----
+streamlit>=1.29.0
+
+# ----- Jupyter Notebooks -----
+jupyter>=1.0.0
+ipykernel>=6.27.0
+
+# ----- Utilidades -----
+tqdm>=4.66.0  # Progress bars para loops largos
+pillow>=10.1.0  # Procesamiento de imágenes (para wordclouds)
+
+# ============================================================================
+# NOTAS DE INSTALACIÓN
+# ============================================================================
+
+# Después de instalar, descarga los recursos de NLTK y spaCy:
+#
+# python -m nltk.downloader punkt stopwords wordnet averaged_perceptron_tagger
+# python -m spacy download en_core_web_sm
+#
+# Si usas español:
+# python -m spacy download es_core_news_sm
