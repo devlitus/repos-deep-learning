@@ -35,6 +35,7 @@ from src import model
 from src import deep_model
 from src import visualizations
 from src import predictor
+from src import resource_checker  # Verificación automática de recursos
 
 # ============================================================================
 # PIPELINE PRINCIPAL
@@ -47,6 +48,9 @@ def main():
     print("\n" + "🎬" * 35)
     print(" SENTIMENT ANALYSIS - PIPELINE COMPLETO")
     print("🎬" * 35)
+
+    # Verificar y descargar recursos NLP si es necesario
+    resource_checker.ensure_resources_available()
 
     # Crear directorios si no existen
     config.MODELS_DIR.mkdir(exist_ok=True)
@@ -89,8 +93,12 @@ def main():
     print("\n🔄 Decodificando reviews para visualizaciones...")
     print("   (Esto puede tomar unos minutos...)")
 
-    train_texts = [data_loader.decode_review(review, word_index) for review in X_train_raw[:5000]]
-    train_labels = y_train[:5000]
+    # AJUSTADO: Usar TODOS los datos (25,000) para mejor accuracy
+    # Con más datos, el modelo puede generalizar mejor y evitar collapse
+    print("\n⚠️  IMPORTANTE: Usando TODOS los 25,000 datos de entrenamiento")
+    print("   (Esto tomará más tiempo pero dará mejores resultados)")
+    train_texts = [data_loader.decode_review(review, word_index) for review in X_train_raw]
+    train_labels = y_train
 
     # Separar por sentimiento
     positive_texts = [text for text, label in zip(train_texts, train_labels) if label == 1]
@@ -122,11 +130,12 @@ def main():
     train_texts_processed = [
         text_preprocessing.preprocess_text(text) for text in train_texts
     ]
-    test_texts = [data_loader.decode_review(review, word_index) for review in X_test_raw[:5000]]
+    # AJUSTADO: Usar TODOS los datos de test para evaluación completa
+    test_texts = [data_loader.decode_review(review, word_index) for review in X_test_raw]
     test_texts_processed = [
         text_preprocessing.preprocess_text(text) for text in test_texts
     ]
-    test_labels = y_test[:5000]
+    test_labels = y_test
 
     # Crear features TF-IDF
     print("\n📊 Creando features TF-IDF...")
