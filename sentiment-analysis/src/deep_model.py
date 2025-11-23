@@ -347,27 +347,18 @@ def build_lstm_model(vocab_size: int,
             name='embedding'
         ))
 
-    # 2. Primera capa LSTM (bidireccional)
-    model.add(Bidirectional(
-        LSTM(
-            config.LSTM_UNITS_1,
-            return_sequences=True,  # Retornar secuencia completa para siguiente LSTM
-            dropout=config.DROPOUT_RATE,
-            recurrent_dropout=config.RECURRENT_DROPOUT
-        ),
-        name='bidirectional_lstm_1'
+    # 2. Capa LSTM única (configuración optimizada del notebook 05)
+    # Usa 1 sola LSTM en lugar de 2 bidireccionales para mejor generalización
+    model.add(LSTM(
+        config.LSTM_UNITS_1,
+        activation='tanh',
+        return_sequences=False,  # Solo retornar último output
+        recurrent_dropout=config.RECURRENT_DROPOUT,
+        name='lstm'
     ))
 
-    # 3. Segunda capa LSTM
-    model.add(Bidirectional(
-        LSTM(
-            config.LSTM_UNITS_2,
-            return_sequences=False,  # Solo retornar último output
-            dropout=config.DROPOUT_RATE,
-            recurrent_dropout=config.RECURRENT_DROPOUT
-        ),
-        name='bidirectional_lstm_2'
-    ))
+    # 3. Dropout después de LSTM
+    model.add(Dropout(config.DROPOUT_RATE, name='dropout_lstm'))
 
     # 4. Capa densa intermedia
     model.add(Dense(
@@ -375,19 +366,26 @@ def build_lstm_model(vocab_size: int,
         activation=config.ACTIVATION_HIDDEN,
         name='dense_hidden'
     ))
-    model.add(Dropout(config.DROPOUT_RATE, name='dropout'))
 
-    # 5. Capa de salida
+    # 5. Dropout antes de output
+    model.add(Dropout(config.DROPOUT_RATE_2, name='dropout_dense'))
+
+    # 6. Capa de salida
     model.add(Dense(
         1,  # 1 neurona para clasificación binaria
         activation=config.ACTIVATION_OUTPUT,  # Sigmoid: output entre 0 y 1
         name='output'
     ))
 
-    # Compilar modelo
+    # Compilar modelo con learning rate personalizado
     print(f"\n🔧 Compilando modelo...")
+
+    # Usar learning rate del config (clave para evitar overfitting)
+    from tensorflow.keras.optimizers import Adam
+    optimizer = Adam(learning_rate=config.LEARNING_RATE)
+
     model.compile(
-        optimizer=config.OPTIMIZER,
+        optimizer=optimizer,
         loss=config.LOSS,  # binary_crossentropy para clasificación binaria
         metrics=config.METRICS
     )
@@ -466,7 +464,7 @@ def train_lstm_model(model,
         ReduceLROnPlateau(
             monitor='val_loss',
             factor=0.5,
-            patience=2,
+            patience=config.REDUCE_LR_PATIENCE,
             min_lr=1e-7,
             verbose=1
         ),
@@ -480,7 +478,7 @@ def train_lstm_model(model,
 
     print(f"\n📋 Callbacks configurados:")
     print(f"   • EarlyStopping (patience={config.EARLY_STOPPING_PATIENCE})")
-    print(f"   • ReduceLROnPlateau")
+    print(f"   • ReduceLROnPlateau (patience={config.REDUCE_LR_PATIENCE})")
     print(f"   • ModelCheckpoint")
 
     # Entrenar

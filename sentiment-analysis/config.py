@@ -27,7 +27,7 @@ WEB_DIR = BASE_DIR / 'web'
 # 50,000 reviews: 25,000 para entrenamiento, 25,000 para prueba
 DATASET_NAME = 'imdb'
 NUM_WORDS = 10000  # Vocabulario: top 10,000 palabras más frecuentes
-MAX_SEQUENCE_LENGTH = 200  # Longitud máxima de cada review (en palabras)
+MAX_SEQUENCE_LENGTH = 300  # Longitud máxima (optimizado desde notebook 05)
 
 # Columnas para datasets personalizados (si usamos CSV)
 TEXT_COLUMN = 'text'
@@ -65,7 +65,7 @@ TFIDF_MAX_FEATURES = 5000  # Top 5,000 palabras más relevantes
 # Word Embeddings: Representación vectorial de palabras
 # Palabras similares tienen vectores similares
 # "excelente" y "bueno" estarán cerca en el espacio vectorial
-EMBEDDING_DIM = 100  # Dimensión del vector para cada palabra
+EMBEDDING_DIM = 64  # Dimensión del vector (optimizado desde notebook 05)
 USE_PRETRAINED_EMBEDDINGS = False  # GloVe o Word2Vec pre-entrenados
 
 # ============================================================================
@@ -92,23 +92,27 @@ SVM_KERNEL = 'linear'  # 'linear' funciona bien con TF-IDF
 # ============================================================================
 
 # LSTM: Long Short-Term Memory
-# Similar a prediccion-temperatura, pero con secuencias de palabras
-LSTM_UNITS_1 = 128  # Primera capa LSTM
-LSTM_UNITS_2 = 64   # Segunda capa LSTM
-DROPOUT_RATE = 0.5  # Prevenir overfitting (50% de neuronas desactivadas)
-RECURRENT_DROPOUT = 0.2  # Dropout en conexiones recurrentes
+# CONFIGURACIÓN OPTIMIZADA basada en notebook 05 (87% val accuracy)
+# Usa 1 sola capa LSTM con learning rate bajo para mejor convergencia
+LSTM_UNITS_1 = 64   # Única capa LSTM (arquitectura simple y efectiva)
+LSTM_UNITS_2 = None # No usar segunda capa LSTM
+DROPOUT_RATE = 0.3  # Dropout después de LSTM (balance overfitting/underfitting)
+DROPOUT_RATE_2 = 0.2  # Dropout antes de output layer
+RECURRENT_DROPOUT = 0.2  # Dropout en conexiones recurrentes LSTM
 
-DENSE_UNITS = 64  # Capa densa antes de la salida
+DENSE_UNITS = 32  # Capa densa antes de la salida
 ACTIVATION_HIDDEN = 'relu'
 ACTIVATION_OUTPUT = 'sigmoid'  # Clasificación binaria (0 o 1)
 
 OPTIMIZER = 'adam'
+LEARNING_RATE = 0.0001  # ⭐ CLAVE: 10x más bajo que default (0.001)
 LOSS = 'binary_crossentropy'  # Para clasificación binaria
 METRICS = ['accuracy', 'precision', 'recall']
 
 BATCH_SIZE = 64
-EPOCHS = 10
-EARLY_STOPPING_PATIENCE = 3  # Detener si no mejora en 3 épocas
+EPOCHS = 15
+EARLY_STOPPING_PATIENCE = 5  # Tolerante (permite tiempo para mejorar)
+REDUCE_LR_PATIENCE = 3  # Reduce learning rate si no mejora
 
 # ============================================================================
 # RUTAS DE MODELOS GUARDADOS
