@@ -8,10 +8,21 @@ usando modelos entrenados.
 Similar a predictor.py de otros proyectos, pero adaptado para NLP.
 """
 
+import sys
+from pathlib import Path
+
+# Agregar la raíz del proyecto al PATH (solo cuando se ejecuta como script)
+try:
+    project_root = Path(__file__).resolve().parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+except NameError:
+    # __file__ no está definido en notebooks de Jupyter
+    pass
+
 import numpy as np
 import joblib
 from tensorflow import keras
-from pathlib import Path
 from typing import List, Union, Tuple
 import config
 

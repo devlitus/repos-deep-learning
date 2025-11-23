@@ -25,6 +25,18 @@ MÉTODOS DE CONVERSIÓN:
    "excellent" y "great" estarán cerca en el espacio vectorial
 """
 
+import sys
+from pathlib import Path
+
+# Agregar la raíz del proyecto al PATH (solo cuando se ejecuta como script)
+try:
+    project_root = Path(__file__).resolve().parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+except NameError:
+    # __file__ no está definido en notebooks de Jupyter
+    pass
+
 import numpy as np
 from typing import List, Tuple
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer

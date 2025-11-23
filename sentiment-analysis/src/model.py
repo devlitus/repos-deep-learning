@@ -25,6 +25,18 @@ MODELOS INCLUIDOS:
    - Rápido de entrenar
 """
 
+import sys
+from pathlib import Path
+
+# Agregar la raíz del proyecto al PATH (solo cuando se ejecuta como script)
+try:
+    project_root = Path(__file__).resolve().parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+except NameError:
+    # __file__ no está definido en notebooks de Jupyter
+    pass
+
 import numpy as np
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.naive_bayes import MultinomialNB
