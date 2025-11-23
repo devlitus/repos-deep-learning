@@ -179,3 +179,4 @@ logs/
 temp/
 tmp/
 amazone/data/raw/
+sentiment-analysis/models/
