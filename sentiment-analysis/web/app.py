@@ -26,7 +26,6 @@ import joblib
 # Importar módulos del proyecto
 import config
 from src import text_preprocessing
-from src import predictor
 
 # ============================================================================
 # CONFIGURACIÓN DE LA PÁGINA
@@ -130,13 +129,39 @@ def predict_sentiment(text: str, model, tokenizer) -> tuple:
     Returns:
         tuple: (sentimiento, confianza, probabilidad_positiva)
     """
-    # Preprocesar texto
-    predictor_obj = predictor.SentimentPredictorLSTM(model, tokenizer)
-    sentiment, confidence = predictor_obj.predict_single(text)
+    from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-    # Calcular probabilidad positiva
-    # El modelo retorna sigmoid(x) donde x > 0.5 es positivo
-    prob_positive = confidence if sentiment == "Positive" else 1 - confidence
+    # 1. Preprocesar texto (limpiar)
+    from src.text_preprocessing import clean_text
+    cleaned_text = clean_text(
+        text,
+        remove_html=True,
+        remove_url=True,
+        remove_punct=config.REMOVE_PUNCTUATION,
+        remove_num=config.REMOVE_NUMBERS,
+        lowercase=True
+    )
+
+    # 2. Convertir a secuencia numérica
+    sequence = tokenizer.texts_to_sequences([cleaned_text])
+
+    # 3. Padding
+    padded = pad_sequences(
+        sequence,
+        maxlen=config.MAX_SEQUENCE_LENGTH,
+        padding='pre',
+        truncating='post'
+    )
+
+    # 4. Predecir (retorna probabilidad entre 0 y 1)
+    prob_positive = float(model.predict(padded, verbose=0)[0][0])
+
+    # 5. Clasificar (> 0.5 = positivo)
+    prediction = 1 if prob_positive > 0.5 else 0
+    sentiment = "Positive" if prediction == 1 else "Negative"
+
+    # 6. Calcular confianza (qué tan lejos está de 0.5)
+    confidence = abs(prob_positive - 0.5) * 2
 
     return sentiment, confidence, prob_positive
 
