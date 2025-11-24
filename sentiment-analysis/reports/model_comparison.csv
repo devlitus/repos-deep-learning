@@ -1,11 +1,11 @@
 Review,LSTM,LSTM Conf,SVM,SVM Conf,Coinciden
-This movie is absolutely brilliant! A masterpiece ...,POSITIVO 😊,0.6749058,NEGATIVO 😞,0.8575327505000325,False
-One of the best films I have ever seen. Outstandin...,POSITIVO 😊,0.66418785,POSITIVO 😊,0.014815168490358282,True
-Incredible storyline and amazing cinematography. H...,NEGATIVO 😞,0.5841571,POSITIVO 😊,0.07504236703391647,False
-I loved every minute of it! The acting was superb.,NEGATIVO 😞,0.75835186,NEGATIVO 😞,0.3140034981101893,True
-Terrible movie. Complete waste of time and money.,NEGATIVO 😞,0.7142798,POSITIVO 😊,0.4007286868934455,False
-"Boring plot, bad screenplay. One of the worst film...",NEGATIVO 😞,0.7078465,POSITIVO 😊,0.2858943859939726,False
-Completely disappointing. The director should be a...,NEGATIVO 😞,0.5424813,NEGATIVO 😞,0.4635531811389365,True
-Awful acting and terrible story. Don't watch this.,POSITIVO 😊,0.7924382,NEGATIVO 😞,0.2873745412525484,False
-It was okay. Not great but not terrible either.,POSITIVO 😊,0.5986539,NEGATIVO 😞,0.04795716250910455,False
-Some good moments but overall average. Decent acti...,POSITIVO 😊,0.6810273,POSITIVO 😊,0.8222736839079573,True
+This movie is absolutely brilliant! A masterpiece ...,POSITIVO 😊,0.6546465,NEGATIVO 😞,0.8575327505000325,False
+One of the best films I have ever seen. Outstandin...,POSITIVO 😊,0.53792596,POSITIVO 😊,0.014815168490358282,True
+Incredible storyline and amazing cinematography. H...,NEGATIVO 😞,0.5500016,POSITIVO 😊,0.07504236703391647,False
+I loved every minute of it! The acting was superb.,NEGATIVO 😞,0.57576025,NEGATIVO 😞,0.3140034981101893,True
+Terrible movie. Complete waste of time and money.,NEGATIVO 😞,0.6514474,POSITIVO 😊,0.4007286868934455,False
+"Boring plot, bad screenplay. One of the worst film...",NEGATIVO 😞,0.7128414,POSITIVO 😊,0.2858943859939726,False
+Completely disappointing. The director should be a...,NEGATIVO 😞,0.63921237,NEGATIVO 😞,0.4635531811389365,True
+Awful acting and terrible story. Don't watch this.,POSITIVO 😊,0.68690026,NEGATIVO 😞,0.2873745412525484,False
+It was okay. Not great but not terrible either.,POSITIVO 😊,0.6571363,NEGATIVO 😞,0.04795716250910455,False
+Some good moments but overall average. Decent acti...,POSITIVO 😊,0.6223471,POSITIVO 😊,0.8222736839079573,True

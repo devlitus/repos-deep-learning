@@ -43,6 +43,12 @@ ARQUITECTURA TÍPICA:
 
 import sys
 from pathlib import Path
+import os
+import warnings
+
+# Suprimir warnings de TensorFlow deprecados
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=INFO, 1=WARNING, 2=ERROR
+warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 # Agregar la raíz del proyecto al PATH (solo cuando se ejecuta como script)
 try:
@@ -329,12 +335,12 @@ def build_lstm_model(vocab_size: int,
     model = Sequential(name='SentimentLSTM')
 
     # 1. Embedding Layer
+    # Nota: input_length está deprecado. Keras infiere automáticamente desde los datos
     if embedding_matrix is not None:
         print(f"\n   💡 Usando embeddings PRE-ENTRENADOS")
         model.add(Embedding(
             input_dim=vocab_size,
             output_dim=embedding_dim,
-            input_length=max_length,
             weights=[embedding_matrix],
             trainable=False,  # No entrenar embeddings (frozen)
             name='embedding'
@@ -344,7 +350,6 @@ def build_lstm_model(vocab_size: int,
         model.add(Embedding(
             input_dim=vocab_size,
             output_dim=embedding_dim,
-            input_length=max_length,
             name='embedding'
         ))
 
