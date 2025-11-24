@@ -6,13 +6,14 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![GitHub repo](https://img.shields.io/badge/GitHub-repos--deep--learning-181717?logo=github)](https://github.com/devlitus/repos-deep-learning)
 
-Repositorio educativo con **cinco proyectos independientes de Machine Learning** siguiendo arquitectura modular y mejores prácticas:
+Repositorio educativo con **seis proyectos independientes de Machine Learning** siguiendo arquitectura modular y mejores prácticas:
 
 - 🏠 **Predictor de Precios de Casas**: Regresión lineal múltiple para estimar precios inmobiliarios
 - 🚢 **Predictor de Supervivencia del Titanic**: Clasificación binaria con Random Forest
 - 💳 **Detección de Fraude**: Sistema avanzado de detección de transacciones fraudulentas con técnicas de balanceo
 - 🌡️ **Predicción de Temperatura**: Series temporales con redes neuronales LSTM (prediction-temperature)
 - 📝 **Análisis de Sentimientos**: NLP para clasificar reviews de películas (IMDB) usando técnicas clásicas (Naive Bayes, SVM) y Deep Learning (LSTM)
+- 👕 **Sistema de Recomendación de Moda**: Collaborative filtering para recomendación de productos de ropa con Amazon Fashion Reviews
 
 Cada proyecto incluye pipeline completo: carga de datos → preprocesamiento → entrenamiento → evaluación → predicciones.
 
@@ -207,18 +208,18 @@ Output (Sigmoid: probabilidad 0-1)
 
 ## 📊 Comparación de Proyectos
 
-| Característica        | 🏠 Predictor Casas | 🚢 Predictor Titanic     | 💳 Detección Fraude          | 🌡️ Predicción Temperatura   | 📝 Sentiment Analysis    |
-| --------------------- | ------------------ | ------------------------ | ---------------------------- | ------------------------------ | ---------------------- |
-| **Tipo de ML**        | Regresión          | Clasificación Balanceada | Clasificación Desbalanceada  | Series Temporales (LSTM)       | NLP/Clasificación      |
-| **Dataset**           | Sintético + Kaggle | Seaborn (Titanic)        | Kaggle (284K transacciones)  | Melbourne (10 años)            | IMDB (50K reviews)     |
-| **Dificultad**        | ⭐⭐               | ⭐⭐⭐                   | ⭐⭐⭐⭐                     | ⭐⭐⭐⭐⭐                   | ⭐⭐⭐⭐              |
-| **Tamaño Dataset**    | Pequeño            | Mediano                  | Grande                       | Mediano (3,650 muestras)       | Grande (50K reviews)   |
-| **Desafío Principal** | Multicolinealidad  | Datos faltantes          | Datos desbalanceados (0.17%) | Dependencias temporales        | Procesamiento de texto |
-| **Técnicas Clave**    | Regresión lineal   | Feature engineering      | SMOTE, balanceo              | LSTM, normalización            | TF-IDF, Embeddings, LSTM |
-| **Aplicación Web**    | Streamlit simple   | Sin web                  | Streamlit multipágina        | Visualizaciones temporales     | Streamlit (TBD)        |
-| **Framework ML**      | scikit-learn       | scikit-learn             | scikit-learn + imbalanced    | TensorFlow/Keras               | scikit-learn + TensorFlow |
-| **Notebooks**         | 1 opcional         | 1 básico                 | 4 completos                  | Análisis y comparación         | 6 completos            |
-| **Estado**            | ✅ Completo        | ✅ Completo              | ✅ Completo                  | ✅ Completo                    | ✅ Completo            |
+| Característica        | 🏠 Predictor Casas | 🚢 Predictor Titanic     | 💳 Detección Fraude          | 🌡️ Predicción Temperatura   | 📝 Sentiment Analysis    | 👕 Fashion Recommender   |
+| --------------------- | ------------------ | ------------------------ | ---------------------------- | ------------------------------ | ---------------------- | ---------------------- |
+| **Tipo de ML**        | Regresión          | Clasificación Balanceada | Clasificación Desbalanceada  | Series Temporales (LSTM)       | NLP/Clasificación      | Recomendación (Collab. Filtering) |
+| **Dataset**           | Sintético + Kaggle | Seaborn (Titanic)        | Kaggle (284K transacciones)  | Melbourne (10 años)            | IMDB (50K reviews)     | Amazon Fashion (2.7M reviews) |
+| **Dificultad**        | ⭐⭐               | ⭐⭐⭐                   | ⭐⭐⭐⭐                     | ⭐⭐⭐⭐⭐                   | ⭐⭐⭐⭐              | ⭐⭐⭐⭐              |
+| **Tamaño Dataset**    | Pequeño            | Mediano                  | Grande                       | Mediano (3,650 muestras)       | Grande (50K reviews)   | Muy Grande (2.7M reviews) |
+| **Desafío Principal** | Multicolinealidad  | Datos faltantes          | Datos desbalanceados (0.17%) | Dependencias temporales        | Procesamiento de texto | Dispersión extrema (99.8%) |
+| **Técnicas Clave**    | Regresión lineal   | Feature engineering      | SMOTE, balanceo              | LSTM, normalización            | TF-IDF, Embeddings, LSTM | User-CF, Item-CF, SVD |
+| **Aplicación Web**    | Streamlit simple   | Sin web                  | Streamlit multipágina        | Visualizaciones temporales     | Streamlit (TBD)        | Streamlit             |
+| **Framework ML**      | scikit-learn       | scikit-learn             | scikit-learn + imbalanced    | TensorFlow/Keras               | scikit-learn + TensorFlow | scikit-learn + SciPy |
+| **Notebooks**         | 1 opcional         | 1 básico                 | 4 completos                  | Análisis y comparación         | 6 completos            | 0 (análisis modular)   |
+| **Estado**            | ✅ Completo        | ✅ Completo              | ✅ Completo                  | ✅ Completo                    | ✅ Completo            | ✅ Completo            |
 
 ## �📁 Estructura del Repositorio
 
@@ -361,6 +362,29 @@ repos-deep-learning/
 │   ├── config.py             # Configuraciones del proyecto
 │   ├── main.py               # Pipeline completo
 │   ├── requirements.txt      # Dependencias específicas (NLTK, Keras)
+│   └── README.md             # Documentación del proyecto
+│
+├── recommendation-fashion/    # 👕 Proyecto de Recomendación (Fashion)
+│   ├── data/
+│   │   ├── raw/              # Amazon Fashion Reviews (descargadas automáticamente)
+│   │   │   └── fashion_reviews.json  # ~2.7M reviews de ropa
+│   │   └── processed/        # Datos procesados
+│   ├── src/                  # Módulos Python
+│   │   ├── exploratory_analysis.py              # Análisis exploratorio
+│   │   ├── user_based_collaborative_filtering.py    # Recomendaciones por usuario
+│   │   ├── item_based_collaborative_filtering.py    # Recomendaciones por producto
+│   │   ├── matrix_factorization_svd.py          # Factorización SVD
+│   │   ├── hybrid_recommender_system.py         # Sistema híbrido
+│   │   └── sparsity_analysis.py                 # Análisis de dispersión
+│   ├── web/                  # Aplicación Streamlit
+│   │   └── app.py            # Interfaz web interactiva
+│   ├── models/               # Modelos y matrices calculadas
+│   ├── notebooks/            # Jupyter notebooks (análisis)
+│   ├── reports/              # Reportes y visualizaciones
+│   ├── download_fashion.py   # Script para descargar dataset
+│   ├── config.py             # Configuraciones del proyecto
+│   ├── main.py               # Pipeline completo (TBD)
+│   ├── requirements.txt      # Dependencias específicas
 │   └── README.md             # Documentación del proyecto
 │
 ├── .github/
@@ -513,6 +537,37 @@ jupyter notebook notebooks/
 - Predicciones interactivas en consola
 
 **Tiempo estimado**: 15-30 minutos (LSTM es el más lento)
+
+### 👕 Ejecutar Sistema de Recomendación de Moda
+
+```powershell
+cd recommendation-fashion
+pip install -r requirements.txt
+
+# Descargar dataset Amazon Fashion Reviews
+python download_fashion.py
+
+# Ejecutar análisis exploratorio
+python src/exploratory_analysis.py
+
+# Ejecutar sistemas de recomendación
+python src/user_based_collaborative_filtering.py
+python src/item_based_collaborative_filtering.py
+python src/matrix_factorization_svd.py
+
+# Lanzar aplicación web (cuando esté disponible)
+# streamlit run web/app.py
+```
+
+**Output esperado**:
+
+- Dataset descargado en `data/raw/fashion_reviews.json` (~2.7M reviews)
+- Análisis exploratorio con estadísticas del dataset
+- Matrices de similitud y recomendaciones generadas
+- Visualizaciones en `reports/` (distribuciones, similitudes, predicciones)
+- Métricas de evaluación (RMSE, MAE, Precision@K)
+
+**Tiempo estimado**: 30-60 minutos (según tamaño del dataset utilizado)
 
 ## 📊 Ejemplos de Uso
 

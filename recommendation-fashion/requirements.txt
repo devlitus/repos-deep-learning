@@ -1,0 +1,22 @@
+
+# Manipulación de datos
+pandas
+numpy
+matplotlib
+seaborn
+plotly
+
+# Machine Learning
+scikit-learn
+scipy
+
+# Web Application
+streamlit
+
+# Notebooks (opcional)
+jupyter
+ipykernel
+
+# Utilidades
+requests
+tqdm
