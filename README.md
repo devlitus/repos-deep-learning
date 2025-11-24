@@ -6,12 +6,13 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![GitHub repo](https://img.shields.io/badge/GitHub-repos--deep--learning-181717?logo=github)](https://github.com/devlitus/repos-deep-learning)
 
-Repositorio educativo con **cuatro proyectos independientes de Machine Learning** siguiendo arquitectura modular y mejores prácticas:
+Repositorio educativo con **cinco proyectos independientes de Machine Learning** siguiendo arquitectura modular y mejores prácticas:
 
 - 🏠 **Predictor de Precios de Casas**: Regresión lineal múltiple para estimar precios inmobiliarios
 - 🚢 **Predictor de Supervivencia del Titanic**: Clasificación binaria con Random Forest
 - 💳 **Detección de Fraude**: Sistema avanzado de detección de transacciones fraudulentas con técnicas de balanceo
 - 🌡️ **Predicción de Temperatura**: Series temporales con redes neuronales LSTM (prediction-temperature)
+- 📝 **Análisis de Sentimientos**: NLP para clasificar reviews de películas (IMDB) usando técnicas clásicas (Naive Bayes, SVM) y Deep Learning (LSTM)
 
 Cada proyecto incluye pipeline completo: carga de datos → preprocesamiento → entrenamiento → evaluación → predicciones.
 
@@ -39,6 +40,14 @@ Cada proyecto incluye pipeline completo: carga de datos → preprocesamiento →
   - Comparación con implementación clásica
   - Métricas de error para evaluación temporal
 
+### ¿Quieres aprender Natural Language Processing (NLP)?
+
+- 📝 **`sentiment-analysis/`**: Clasificación de sentimientos en reviews de películas
+  - 3 modelos: Naive Bayes, SVM, LSTM Bidirectional
+  - Técnicas de preprocesamiento: Tokenización, Stemming, Lemmatization
+  - Feature extraction: TF-IDF y Word Embeddings
+  - 6 notebooks con análisis exploratorio y desarrollo paso a paso
+
 ### ¿Solo quieres ejecutar algo rápido?
 
 ```bash
@@ -53,6 +62,9 @@ cd fraude-detection && jupyter notebook notebooks/
 
 # Deep learning con series temporales
 cd prediction-temperature && python main.py
+
+# NLP y clasificación de sentimientos
+cd sentiment-analysis && python main.py
 ```
 
 ## 🎯 Proyectos Incluidos
@@ -134,20 +146,79 @@ cd prediction-temperature && python main.py
 
 **Métricas de evaluación**: MAE, RMSE, Error Porcentual Medio
 
-## � Comparación de Proyectos
+### 📝 Análisis de Sentimientos (`sentiment-analysis/`)
 
-| Característica        | 🏠 Predictor Casas | 🚢 Predictor Titanic     | 💳 Detección Fraude          | 🌡️ Predicción Temperatura   |
-| --------------------- | ------------------ | ------------------------ | ---------------------------- | ------------------------------ |
-| **Tipo de ML**        | Regresión          | Clasificación Balanceada | Clasificación Desbalanceada  | Series Temporales (LSTM)       |
-| **Dataset**           | Sintético + Kaggle | Seaborn (Titanic)        | Kaggle (284K transacciones)  | Melbourne (10 años)            |
-| **Dificultad**        | ⭐⭐               | ⭐⭐⭐                   | ⭐⭐⭐⭐                     | ⭐⭐⭐⭐⭐                   |
-| **Tamaño Dataset**    | Pequeño            | Mediano                  | Grande                       | Mediano (3,650 muestras)       |
-| **Desafío Principal** | Multicolinealidad  | Datos faltantes          | Datos desbalanceados (0.17%) | Dependencias temporales        |
-| **Técnicas Clave**    | Regresión lineal   | Feature engineering      | SMOTE, balanceo              | LSTM, normalización            |
-| **Aplicación Web**    | Streamlit simple   | Sin web                  | Streamlit multipágina        | Visualizaciones temporales     |
-| **Framework ML**      | scikit-learn       | scikit-learn             | scikit-learn + imbalanced    | TensorFlow/Keras               |
-| **Notebooks**         | 1 opcional         | 1 básico                 | 4 completos                  | Análisis y comparación         |
-| **Estado**            | ✅ Completo        | ✅ Completo              | ✅ Completo                  | ✅ Completo                    |
+**Tipo**: Natural Language Processing (NLP) / Clasificación Binaria
+**Dataset**: IMDB Movie Reviews (50,000 reviews)
+**Objetivo**: Clasificar reviews de películas como positivas o negativas
+
+**Características clave**:
+
+- 📚 **3 modelos de clasificación**:
+  - Naive Bayes: Rápido, probabilístico, excelente para texto
+  - SVM: Robusto, funciona bien con espacios de alta dimensión
+  - LSTM Bidirectional: Captura orden y contexto de palabras
+- 🔤 **Técnicas de procesamiento de texto**:
+  - Tokenización: Dividir texto en palabras/tokens
+  - Stopwords: Remover palabras sin significado
+  - Stemming/Lemmatization: Reducir palabras a su raíz
+- 🎯 **Feature extraction**:
+  - TF-IDF: Vectorización ponderada de palabras
+  - Word Embeddings: Representación densa de palabras (100 dimensiones)
+- 📊 **6 Jupyter notebooks**: Análisis exploratorio paso a paso
+  - 01: Introducción al dataset IMDB
+  - 02: Tokenización y preprocesamiento
+  - 03: Extracción de features TF-IDF
+  - 04: Modelos clásicos (Naive Bayes, SVM)
+  - 05: Word Embeddings y LSTM
+  - 06: Predicciones interactivas
+- 🎨 **Visualizaciones**:
+  - Word clouds de palabras positivas vs negativas
+  - Matrices de confusión para cada modelo
+  - Histogramas de longitudes de reviews
+  - Gráficos de entrenamiento LSTM
+  - Comparación de rendimiento entre modelos
+
+**Arquitectura LSTM**:
+
+```
+Input (secuencia tokenizada)
+    ↓
+Embedding Layer (100 dimensiones)
+    ↓
+Bidirectional LSTM (128 units)
+    ↓
+Bidirectional LSTM (64 units)
+    ↓
+Dense + Dropout (64 units, 0.5)
+    ↓
+Output (Sigmoid: probabilidad 0-1)
+```
+
+**Resultados esperados**:
+
+| Modelo       | Accuracy | Precision | Recall | F1-Score | Tiempo |
+| ------------ | -------- | --------- | ------ | -------- | ------ |
+| Naive Bayes  | 85-87%   | 85-87%    | 85-87% | 85-87%   | <1seg  |
+| SVM          | 87-89%   | 87-89%    | 87-89% | 87-89%   | 10-30s |
+| LSTM         | 88-90%   | 88-90%    | 88-90% | 88-90%   | 5-15m  |
+
+**Métricas de evaluación**: Accuracy, Precision, Recall, F1-Score, Matriz de Confusión, Curva ROC
+
+## 📊 Comparación de Proyectos
+
+| Característica        | 🏠 Predictor Casas | 🚢 Predictor Titanic     | 💳 Detección Fraude          | 🌡️ Predicción Temperatura   | 📝 Sentiment Analysis    |
+| --------------------- | ------------------ | ------------------------ | ---------------------------- | ------------------------------ | ---------------------- |
+| **Tipo de ML**        | Regresión          | Clasificación Balanceada | Clasificación Desbalanceada  | Series Temporales (LSTM)       | NLP/Clasificación      |
+| **Dataset**           | Sintético + Kaggle | Seaborn (Titanic)        | Kaggle (284K transacciones)  | Melbourne (10 años)            | IMDB (50K reviews)     |
+| **Dificultad**        | ⭐⭐               | ⭐⭐⭐                   | ⭐⭐⭐⭐                     | ⭐⭐⭐⭐⭐                   | ⭐⭐⭐⭐              |
+| **Tamaño Dataset**    | Pequeño            | Mediano                  | Grande                       | Mediano (3,650 muestras)       | Grande (50K reviews)   |
+| **Desafío Principal** | Multicolinealidad  | Datos faltantes          | Datos desbalanceados (0.17%) | Dependencias temporales        | Procesamiento de texto |
+| **Técnicas Clave**    | Regresión lineal   | Feature engineering      | SMOTE, balanceo              | LSTM, normalización            | TF-IDF, Embeddings, LSTM |
+| **Aplicación Web**    | Streamlit simple   | Sin web                  | Streamlit multipágina        | Visualizaciones temporales     | Streamlit (TBD)        |
+| **Framework ML**      | scikit-learn       | scikit-learn             | scikit-learn + imbalanced    | TensorFlow/Keras               | scikit-learn + TensorFlow |
+| **Notebooks**         | 1 opcional         | 1 básico                 | 4 completos                  | Análisis y comparación         | 6 completos            |
+| **Estado**            | ✅ Completo        | ✅ Completo              | ✅ Completo                  | ✅ Completo                    | ✅ Completo            |
 
 ## �📁 Estructura del Repositorio
 
@@ -256,6 +327,41 @@ repos-deep-learning/
 │   ├── config.py             # Configuraciones del proyecto
 │   ├── main.py               # Pipeline completo
 │   └── requirements.txt      # Dependencias específicas (TensorFlow, Keras)
+│
+├── sentiment-analysis/        # 📝 Proyecto de NLP (Análisis de Sentimientos)
+│   ├── data/
+│   │   ├── raw/              # IMDB reviews (descargados automáticamente)
+│   │   └── processed/        # Datos procesados (opcional)
+│   ├── src/                  # Módulos Python
+│   │   ├── data_loader.py    # Carga dataset IMDB
+│   │   ├── text_preprocessing.py    # Limpieza y preprocesamiento de texto
+│   │   ├── feature_extraction.py    # TF-IDF, Word Embeddings
+│   │   ├── model.py          # Modelos clásicos (Naive Bayes, SVM)
+│   │   ├── deep_model.py     # Modelo LSTM Bidirectional
+│   │   ├── visualizations.py # Word clouds, matrices de confusión
+│   │   └── predictor.py      # Predicciones en nuevo texto
+│   ├── models/               # Modelos entrenados (.pkl, .keras)
+│   │   ├── naive_bayes_tfidf.pkl
+│   │   ├── svm_tfidf.pkl
+│   │   ├── lstm_sentiment.keras
+│   │   └── tokenizer.pkl
+│   ├── reports/              # Visualizaciones y métricas (.png, .json)
+│   │   ├── word_clouds.png
+│   │   ├── confusion_matrices.png
+│   │   ├── training_history.png
+│   │   └── model_comparison.json
+│   ├── notebooks/            # 6 Jupyter notebooks
+│   │   ├── 01_introduccion_dataset_imdb.ipynb
+│   │   ├── 02_tokenizacion_preprocesamiento.ipynb
+│   │   ├── 03_feature_extraction_tfidf.ipynb
+│   │   ├── 04_modelos_clasicos_ML.ipynb
+│   │   ├── 05_word_embeddings_lstm.ipynb
+│   │   └── 06_predicciones_interactivas.ipynb
+│   ├── web/                  # Streamlit app (TBD)
+│   ├── config.py             # Configuraciones del proyecto
+│   ├── main.py               # Pipeline completo
+│   ├── requirements.txt      # Dependencias específicas (NLTK, Keras)
+│   └── README.md             # Documentación del proyecto
 │
 ├── .github/
 │   └── copilot-instructions.md  # Instrucciones para agentes IA
@@ -376,6 +482,38 @@ jupyter notebook notebooks/
 - Métricas de evaluación en consola (MAE, RMSE)
 - Comparación de rendimiento LSTM vs modelo clásico
 
+### 📝 Ejecutar Análisis de Sentimientos
+
+```powershell
+cd sentiment-analysis
+pip install -r requirements.txt
+
+# Descargar recursos de NLTK (primera vez)
+python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('wordnet')"
+
+# Ejecutar pipeline completo (3 modelos: Naive Bayes, SVM, LSTM)
+python main.py
+
+# Solo entrenar LSTM (si ya tienes modelos clásicos)
+python main.py lstm
+
+# Demo rápido con modelos preentrenados
+python main.py demo
+
+# Explorar notebooks
+jupyter notebook notebooks/
+```
+
+**Output esperado**:
+
+- Modelos entrenados en `models/` (`.pkl` para clásicos, `.keras` para LSTM)
+- Tokenizador guardado en `models/tokenizer.pkl`
+- Visualizaciones en `reports/` (word clouds, matrices de confusión, training history)
+- Reporte de comparación de modelos en JSON
+- Predicciones interactivas en consola
+
+**Tiempo estimado**: 15-30 minutos (LSTM es el más lento)
+
 ## 📊 Ejemplos de Uso
 
 ### 🏠 Predicciones de Precios de Casas
@@ -487,6 +625,77 @@ for i in range(30):
     print(f"Día {i+1}: {temp_real[0][0]:.1f}°C")
 ```
 
+### 📝 Análisis de Sentimientos en Reviews
+
+```python
+from src.predictor import SentimentPredictorLSTM, SentimentPredictorClassic
+import config
+
+# Predictor con LSTM
+predictor_lstm = SentimentPredictorLSTM(
+    model_path=config.MODEL_LSTM,
+    tokenizer_path=config.TOKENIZER_FILE
+)
+
+# Predictor con SVM
+predictor_svm = SentimentPredictorClassic(
+    model_path=config.MODEL_SVM,
+    vectorizer_path=config.TFIDF_VECTORIZER
+)
+
+# Reviews para probar
+reviews = [
+    "This movie is absolutely excellent! Best film I've ever seen.",
+    "Terrible waste of time. Awful acting and boring plot.",
+    "It was okay, nothing special but not bad.",
+    "I loved every minute of it! A masterpiece!",
+    "Disappointing. Expected much better from this director."
+]
+
+print("=" * 70)
+print("🎬 ANÁLISIS DE SENTIMIENTOS - COMPARACIÓN DE MODELOS")
+print("=" * 70)
+
+for review in reviews:
+    # Predicción con LSTM
+    pred_lstm, conf_lstm, label_lstm = predictor_lstm.predict_with_confidence(review)
+
+    # Predicción con SVM
+    pred_svm, conf_svm, label_svm = predictor_svm.predict_with_confidence(review)
+
+    print(f"\n📝 Review: {review[:60]}...")
+    print(f"   LSTM:  {label_lstm} ({conf_lstm:.1%})")
+    print(f"   SVM:   {label_svm} ({conf_svm:.1%})")
+```
+
+**Output esperado:**
+
+```
+======================================================================
+🎬 ANÁLISIS DE SENTIMIENTOS - COMPARACIÓN DE MODELOS
+======================================================================
+
+📝 Review: This movie is absolutely excellent! Best film I've...
+   LSTM:  Positivo ✅ (96.2%)
+   SVM:   Positivo ✅ (95.3%)
+
+📝 Review: Terrible waste of time. Awful acting and boring...
+   LSTM:  Negativo ❌ (93.8%)
+   SVM:   Negativo ❌ (91.5%)
+
+📝 Review: It was okay, nothing special but not bad.
+   LSTM:  Positivo ✅ (58.7%)
+   SVM:   Positivo ✅ (52.1%)
+
+📝 Review: I loved every minute of it! A masterpiece!
+   LSTM:  Positivo ✅ (98.4%)
+   SVM:   Positivo ✅ (97.2%)
+
+📝 Review: Disappointing. Expected much better from this...
+   LSTM:  Negativo ❌ (87.3%)
+   SVM:   Negativo ❌ (85.9%)
+```
+
 ## 📋 Datasets Utilizados
 
 ### Predictor de Casas
@@ -564,6 +773,32 @@ for i in range(30):
 - Capturar patrones estacionales (variación anual)
 - Dependencias temporales a largo plazo
 - Normalización apropiada para redes neuronales
+
+### Análisis de Sentimientos (IMDB Reviews)
+
+| Variable        | Descripción                    | Tipo      | Valores        |
+| --------------- | ------------------------------ | --------- | -------------- |
+| `review_text` 📝| Texto de la review              | Texto     | Cadenas 1-1000 caracteres |
+| `sentiment` 🎯  | Sentimiento (target)           | Binario   | 0 (Negativo), 1 (Positivo) |
+
+**Características del dataset**:
+
+- **Total reviews**: 50,000
+- **Reviews entrenamiento**: 25,000
+- **Reviews prueba**: 25,000
+- **Balanceo**: 50% positivo, 50% negativo
+- **Rango de longitud**: 10-1000 palabras por review
+- **Fuente**: Keras/TensorFlow built-in IMDB dataset
+- **Procesamiento**: Tokenización, remover stopwords, stemming/lemmatization
+- **Vectorización**: TF-IDF (5000 features) y Word Embeddings (100 dimensiones)
+
+**Desafíos abordados**:
+
+- Procesamiento de texto variable (diferentes longitudes)
+- Contexto y orden de palabras (importante para sentimientos)
+- Manejo de palabras raras o fuera del vocabulario
+- Palabras con polaridad invertida ("not good" vs "good")
+- Comparación entre métodos de feature extraction (TF-IDF vs Embeddings)
 
 ## 🔬 Rendimiento de los Modelos
 
@@ -649,6 +884,53 @@ for i in range(30):
 - ✅ Maneja variaciones estacionales automáticamente
 - ✅ Generaliza bien a nuevos períodos
 - ✅ Predicciones consistentes en diferentes épocas del año
+
+### 📝 Análisis de Sentimientos (IMDB Reviews)
+
+#### Modelos Clásicos (Naive Bayes, SVM con TF-IDF)
+
+| Métrica       | Naive Bayes | SVM Lineal |
+| ------------- | ----------- | ---------- |
+| **Accuracy**  | 85-87%      | 87-89%     |
+| **Precision** | 85-87%      | 87-89%     |
+| **Recall**    | 85-87%      | 87-89%     |
+| **F1-Score**  | 85-87%      | 87-89%     |
+| **Tiempo**    | <1 seg      | 10-30 seg  |
+
+**Características**:
+
+- ✅ Muy rápidos de entrenar
+- ✅ Funcionan bien con TF-IDF (alta dimensionalidad)
+- ✅ Interpretables: se puede ver qué palabras son más importantes
+- ⚠️ No capturan orden ni contexto de palabras
+- ⚠️ Limitados a vocabulario conocido
+
+#### LSTM Bidirectional (Word Embeddings)
+
+| Métrica       | Valor |
+| ------------- | ----- |
+| **Accuracy**  | 88-90% |
+| **Precision** | 88-90% |
+| **Recall**    | 88-90% |
+| **F1-Score**  | 88-90% |
+| **Tiempo**    | 5-15 min |
+
+**Características**:
+
+- ✅ Entiende orden y contexto de palabras ("not good" ≠ "good")
+- ✅ Word embeddings capturan significado semántico
+- ✅ Mejor generalización a palabras nuevas (a través de embeddings)
+- ✅ Bidirectional: lee en ambas direcciones para mejor contexto
+- ✅ Mejor rendimiento general (~2-3% mejor que SVM)
+- ⚠️ Más lento de entrenar (necesita GPU para producción)
+- ⚠️ Menos interpretable que modelos clásicos
+
+**Ventajas del enfoque LSTM**:
+
+- ✅ Captura relaciones complejas entre palabras
+- ✅ Maneja polaridades invertidas
+- ✅ Mejor rendimiento en reviews complejos y contextuales
+- ✅ Early stopping previene overfitting
 
 ## 📈 Visualizaciones y Análisis
 
@@ -739,6 +1021,41 @@ for i in range(30):
    - Tabla de métricas (MAE, RMSE, R²)
    - Análisis de desempeño por estación del año
 
+### Análisis de Sentimientos
+
+1. **Exploración de Datos**
+   - Distribución de longitudes de reviews (histograma)
+   - Proporción positivo/negativo en dataset
+   - Top palabras más frecuentes
+   - Análisis de palabras por sentimiento
+
+2. **Análisis de Preprocesamiento**
+   - Comparación: Stemming vs Lemmatization
+   - Remover stopwords: antes/después
+   - Frecuencia de palabras después de procesamiento
+
+3. **Evaluación de Modelos**
+   - **Matrices de confusión**: Una para cada modelo (Naive Bayes, SVM, LSTM)
+   - **Curvas ROC**: Comparativo de los 3 modelos
+   - **Curva Precision-Recall**: Especialmente útil cuando el dataset está balanceado
+   - **Feature Importance** (SVM): Palabras más discriminativas positivas/negativas
+   - **Embedding Visualization** (LSTM): Visualización 2D de word embeddings (t-SNE/PCA)
+
+4. **Word Clouds**
+   - Cloud de palabras positivas (verde)
+   - Cloud de palabras negativas (rojo)
+   - Comparación visual de vocabulario por sentimiento
+
+5. **Training History (LSTM)**
+   - Curva de pérdida y accuracy en entrenamiento
+   - Curva de validación (detección de overfitting)
+   - Early stopping checkpoint
+
+6. **Comparación de Modelos**
+   - Tabla de métricas (Accuracy, Precision, Recall, F1)
+   - Tiempo de entrenamiento
+   - Conclusiones sobre trade-offs (velocidad vs precisión)
+
 ## 🛠️ Tecnologías Utilizadas
 
 ### Core ML Stack
@@ -787,6 +1104,18 @@ for i in range(30):
 - `matplotlib`: Visualizaciones de series temporales
 - `jupyter`: Notebooks para análisis
 
+#### sentiment-analysis
+
+- `pandas`, `numpy`: Manipulación de texto y datos
+- `scikit-learn`: Naive Bayes, SVM, TF-IDF, métricas
+- `nltk >= 3.8`: Tokenización, stopwords, stemming, lemmatization
+- `tensorflow >= 2.12.0`: Framework LSTM
+- `keras`: API para LSTM con embeddings
+- `matplotlib`, `seaborn`: Visualizaciones (word clouds requiere wordcloud)
+- `wordcloud`: Generación de nubes de palabras
+- `jupyter`: Notebooks para análisis exploratoria
+- `spacy` (opcional): Alternativa avanzada para NLP
+
 ### Herramientas de Desarrollo
 
 - **pickle/joblib**: Serialización de modelos entrenados
@@ -818,6 +1147,16 @@ for i in range(30):
   - Arquitectura multi-capa para modelos complejos
   - Regularización con Dropout
   - Early stopping para evitar overfitting
+  - LSTM Bidirectional para procesamiento de texto
+  - Word Embeddings para representación densa de palabras
+- **Natural Language Processing (NLP)**:
+  - **Tokenización**: División de texto en palabras/tokens
+  - **Stopwords**: Remover palabras sin significado
+  - **Stemming/Lemmatization**: Reducir palabras a su raíz
+  - **TF-IDF**: Vectorización ponderada de palabras
+  - **Word Embeddings**: Representación vectorial densa (100 dimensiones)
+  - **Naive Bayes**: Clasificación probabilística de texto
+  - **SVM para texto**: Clasificación con espacios de alta dimensión
 - **Train/Test/Validation Split**: División estratificada de datos
 - **Model Persistence**: Serialización con pickle/joblib/Keras
 - **Métricas de Evaluación**:
@@ -825,6 +1164,7 @@ for i in range(30):
   - Clasificación: Accuracy, Precision, Recall, F1-Score, AUC-ROC
   - Confusion Matrix y Classification Report
   - Series Temporales: MAE, RMSE, R² Score
+  - NLP: Accuracy, Precision, Recall, F1 (para clasificación binaria)
 
 ### Desafíos Resueltos
 
@@ -870,6 +1210,23 @@ for i in range(30):
   - Solución: Ventanas deslizantes de 60 días como histórico
 - **Comparación con baseline**: Validación de que el modelo LSTM es realmente mejor
   - Solución: Modelo clásico como punto de referencia
+
+#### 📝 Análisis de Sentimientos
+
+- **Procesamiento de texto variable**: Reviews de diferentes longitudes
+  - Solución: Padding/truncating de secuencias en LSTM
+- **Contexto y orden de palabras**: Modelos clásicos ignoran el orden
+  - Solución: Usar LSTM Bidirectional para capturar contexto
+- **Palabras raras o fuera del vocabulario**: Palabras no vistas en entrenamiento
+  - Solución: Word Embeddings permiten generalizar a palabras nuevas (espacios semánticos)
+- **Polaridad invertida**: "not good" tiene sentimiento opuesto a "good"
+  - Solución: LSTM con suficiente capacidad entiende estas negaciones
+- **Comparación de métodos**: Necesidad de comparar clásicos vs Deep Learning
+  - Solución: 3 modelos (Naive Bayes, SVM, LSTM) en el mismo pipeline
+- **Imbalance dataset**: Dataset balanceado pero necesario demostrar técnicas
+  - Solución: 50-50 positivo/negativo, aunque en producción sería desafiante
+- **Interpretabilidad**: Deep Learning es una "caja negra"
+  - Solución: Incluir modelos interpretables (SVM con feature importance) junto con LSTM
 
 ### Buenas Prácticas Aplicadas
 
@@ -1099,13 +1456,35 @@ Hecho con ❤️ para la comunidad de Data Science
 - [ ] Detectar cambios de clima (concept drift)
 - [ ] API REST para servir predicciones
 
+### Análisis de Sentimientos
+
+- [x] Pipeline completo (3 modelos: Naive Bayes, SVM, LSTM)
+- [x] 6 Jupyter notebooks documentados
+- [x] Preprocesamiento completo (tokenización, stemming, lemmatization)
+- [x] TF-IDF y Word Embeddings
+- [x] Visualizaciones (word clouds, matrices de confusión)
+- [x] Comparación de modelos
+- [ ] Aplicación web Streamlit para predicciones interactivas
+- [ ] Probar otros datasets (Amazon reviews, Yelp, Twitter)
+- [ ] Análisis multiclase (5 estrellas en lugar de binario)
+- [ ] Detección de emociones (alegría, tristeza, ira, sorpresa, miedo)
+- [ ] Transformers pre-entrenados (BERT, RoBERTa)
+- [ ] Embeddings pre-entrenados (GloVe, Word2Vec)
+- [ ] Ensemble de modelos (combinar predicciones)
+- [ ] Análisis de atención (visualizar qué palabras influyen más)
+- [ ] Fine-tuning de modelos pre-entrenados
+- [ ] API REST para servir predicciones
+- [ ] Análisis de error específico (palabras que confunden al modelo)
+- [ ] Augmentación de datos con paráfrasis
+- [ ] Soporte para múltiples idiomas
+
 ### General
 
 - [ ] Tests unitarios completos (pytest)
 - [ ] CI/CD pipeline con GitHub Actions
-- [ ] Dockerización de los cuatro proyectos
-- [ ] Notebooks Jupyter documentados (completo en fraude-detection y prediction-temperature)
+- [ ] Dockerización de los cinco proyectos
+- [ ] Notebooks Jupyter documentados (completo en fraude-detection, prediction-temperature y sentiment-analysis)
 - [ ] Logging avanzado con `logging` module
 - [ ] Documentación con MkDocs o Sphinx
 - [ ] Integración con MLflow para tracking de experimentos
-- [ ] Comparación de arquitecturas de redes neuronales (RNN, GRU, Transformer)
+- [ ] Comparación de arquitecturas de redes neuronales (RNN, GRU, Transformer, Attention)
