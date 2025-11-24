@@ -24,8 +24,9 @@ def download_fashion_dataset(output_dir='.\\data\\raw'):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     # URL del dataset comprimido (Amazon Fashion Reviews - Clothing, Shoes and Jewelry)
-    # Fuente: http://jmcauley.ucsd.edu/data/amazon/
-    url = "http://jmcauley.ucsd.edu/data/amazon/categoryFilesSmall/Clothing_Shoes_and_Jewelry.json.gz"
+    # Fuente: https://datarepo.eng.ucsd.edu/ (actualizado 2024)
+    # URL anterior (deprecated): http://jmcauley.ucsd.edu/data/amazon/categoryFilesSmall/...
+    url = "https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_v2/categoryFiles/Clothing_Shoes_and_Jewelry.json.gz"
     gz_path = os.path.join(output_dir, "Clothing_Shoes_and_Jewelry.json.gz")
     json_path = os.path.join(output_dir, "fashion_reviews.json")
 
