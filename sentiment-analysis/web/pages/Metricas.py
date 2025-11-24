@@ -96,7 +96,7 @@ st.header("📈 Histórico de Entrenamiento")
 
 if training_history_path.exists():
     image = Image.open(training_history_path)
-    st.image(image, caption="Evolución de Loss y Accuracy durante el entrenamiento", use_container_width=True)
+    st.image(image, caption="Evolución de Loss y Accuracy durante el entrenamiento", width="stretch")
 else:
     st.info("📊 Ejecuta `python main.py` para generar las gráficas de entrenamiento")
 
@@ -131,7 +131,7 @@ st.header("🧠 Detalles del Entrenamiento LSTM")
 
 if lstm_training_path.exists():
     image = Image.open(lstm_training_path)
-    st.image(image, caption="Métricas detalladas del entrenamiento LSTM", use_container_width=True)
+    st.image(image, caption="Métricas detalladas del entrenamiento LSTM", width="stretch")
 
 # Información de la arquitectura
 col1, col2 = st.columns(2)
@@ -193,7 +193,7 @@ with col2:
         ]
     })
 
-    st.dataframe(params_df, use_container_width=True, hide_index=True)
+    st.dataframe(params_df, width="stretch", hide_index=True)
 
 # ============================================================================
 # COMPARACIÓN DE MODELOS
@@ -204,13 +204,26 @@ st.header("🔄 Comparación de Modelos")
 
 if model_comparison_path.exists():
     comparison_df = pd.read_csv(model_comparison_path)
-    st.dataframe(comparison_df, use_container_width=True)
 
-    # Crear gráfica de comparación
-    st.subheader("📊 Accuracy Comparativa")
+    # Verificar columnas disponibles
+    if 'Model' in comparison_df.columns or 'model' in comparison_df.columns:
+        st.dataframe(comparison_df, width="stretch")
 
-    chart_data = comparison_df.set_index('Model')['Test Accuracy']
-    st.bar_chart(chart_data)
+        # Crear gráfica de comparación
+        st.subheader("📊 Accuracy Comparativa")
+
+        # Usar nombre correcto de columna
+        model_col = 'Model' if 'Model' in comparison_df.columns else 'model'
+        accuracy_col = 'Test Accuracy' if 'Test Accuracy' in comparison_df.columns else 'accuracy'
+
+        if accuracy_col in comparison_df.columns:
+            chart_data = comparison_df.set_index(model_col)[accuracy_col]
+            st.bar_chart(chart_data)
+        else:
+            st.warning("⚠️ No se encontró columna de accuracy en el CSV")
+    else:
+        st.dataframe(comparison_df, width="stretch")
+        st.info("💡 El CSV existe pero no tiene el formato esperado para comparación de modelos")
 
     with st.expander("💡 Interpretación"):
         st.markdown("""
@@ -246,7 +259,7 @@ if sample_predictions_path.exists():
     # Mostrar tabla
     st.dataframe(
         predictions_df,
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         column_config={
             "Review": st.column_config.TextColumn("Reseña", width="large"),
@@ -275,7 +288,7 @@ if confidence_path.exists():
     st.header("📊 Distribución de Confianza")
 
     image = Image.open(confidence_path)
-    st.image(image, caption="Histograma de confianza en las predicciones", use_container_width=True)
+    st.image(image, caption="Histograma de confianza en las predicciones", width="stretch")
 
     with st.expander("ℹ️ ¿Qué significa esto?"):
         st.markdown("""

@@ -105,14 +105,21 @@ ACTIVATION_HIDDEN = 'relu'
 ACTIVATION_OUTPUT = 'sigmoid'  # Clasificación binaria (0 o 1)
 
 OPTIMIZER = 'adam'
-LEARNING_RATE = 0.0001  # ⭐ CLAVE: 10x más bajo que default (0.001)
+# ⚠️ LEARNING RATE CONSERVADOR: 0.0001 (10x más bajo que default 0.001)
+# VENTAJA: Mejor convergencia, evita overfitting, mejora accuracy de validación
+# DESVENTAJA: Entrenamiento MÁS LENTO (puede tardar 2-3x más tiempo)
+# 💡 Si el entrenamiento es muy lento, considera aumentar a 0.0005 o 0.001
+LEARNING_RATE = 0.0001
 LOSS = 'binary_crossentropy'  # Para clasificación binaria
 METRICS = ['accuracy', 'precision', 'recall']
 
 BATCH_SIZE = 64
 EPOCHS = 15
-EARLY_STOPPING_PATIENCE = 5  # Tolerante (permite tiempo para mejorar)
-REDUCE_LR_PATIENCE = 3  # Reduce learning rate si no mejora
+# Early Stopping: Detiene el entrenamiento si no hay mejora en validación
+# PATIENCE = 3: Más agresivo, ahorra tiempo si el modelo ya no mejora
+# Si quieres dar más tiempo al modelo para mejorar, usa 5 o más
+EARLY_STOPPING_PATIENCE = 3
+REDUCE_LR_PATIENCE = 2  # Reduce learning rate si no mejora (ajustado para ser consistente)
 
 # ============================================================================
 # RUTAS DE MODELOS GUARDADOS

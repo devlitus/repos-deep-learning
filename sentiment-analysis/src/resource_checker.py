@@ -8,6 +8,28 @@ estén instalados y los descarga automáticamente si faltan.
 
 import sys
 import subprocess
+import urllib.request
+import socket
+
+
+def check_internet_connection(timeout=5):
+    """
+    Verifica si hay conexión a internet.
+
+    Args:
+        timeout (int): Tiempo de espera en segundos
+
+    Returns:
+        bool: True si hay conexión, False si no hay
+    """
+    try:
+        # Intentar conectar a un servidor confiable
+        urllib.request.urlopen('https://www.google.com', timeout=timeout)
+        return True
+    except (urllib.error.URLError, socket.timeout):
+        return False
+    except Exception:
+        return False
 
 
 def check_nltk_resources():
@@ -63,6 +85,15 @@ def auto_download_resources(quiet=False):
     """
     if not quiet:
         print("\n🔍 Verificando recursos NLP...")
+
+    # Verificar conexión a internet primero
+    if not check_internet_connection():
+        print("\n⚠️  ADVERTENCIA: No hay conexión a internet detectada")
+        print("   No se pueden descargar recursos automáticamente")
+        print("\n💡 Opciones:")
+        print("   1. Verifica tu conexión a internet y vuelve a intentar")
+        print("   2. Descarga los recursos manualmente cuando tengas conexión")
+        return False
 
     # Verificar NLTK
     nltk_ok, missing_nltk = check_nltk_resources()

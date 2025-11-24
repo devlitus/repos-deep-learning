@@ -93,10 +93,12 @@ def main():
     print("\n🔄 Decodificando reviews para visualizaciones...")
     print("   (Esto puede tomar unos minutos...)")
 
-    # AJUSTADO: Usar TODOS los datos (25,000) para mejor accuracy
-    # Con más datos, el modelo puede generalizar mejor y evitar collapse
-    print("\n⚠️  IMPORTANTE: Usando TODOS los 25,000 datos de entrenamiento")
-    print("   (Esto tomará más tiempo pero dará mejores resultados)")
+    # NOTA: Usando todos los datos de entrenamiento (25,000 reviews)
+    # La división train/validation se hace más adelante en el pipeline (línea ~199)
+    # para el modelo LSTM. Los modelos clásicos usan validación cruzada implícita.
+    print("\n📊 Procesando datos de entrenamiento:")
+    print("   • Total: 25,000 reviews")
+    print("   • División train/val se aplicará para LSTM más adelante")
     train_texts = [data_loader.decode_review(review, word_index) for review in X_train_raw]
     train_labels = y_train
 
@@ -195,6 +197,9 @@ def main():
     X_test_seq = deep_model.texts_to_sequences_padded(test_texts, tokenizer)
 
     # Split para validación
+    # ⚠️ IMPORTANTE: Aquí se hace la división train/validation para evitar overfitting
+    # El modelo LSTM se entrena con train_labels y se valida con val_labels
+    # El test set (X_test_seq) se usa SOLO para evaluación final
     from sklearn.model_selection import train_test_split
     X_train_lstm, X_val_lstm, y_train_lstm, y_val_lstm = train_test_split(
         X_train_seq, train_labels,

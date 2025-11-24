@@ -63,6 +63,7 @@ st.markdown("""
         padding: 1rem;
         border-radius: 5px;
         margin: 1rem 0;
+        color: #155724;
     }
     .negative-sentiment {
         background-color: #f8d7da;
@@ -70,13 +71,15 @@ st.markdown("""
         padding: 1rem;
         border-radius: 5px;
         margin: 1rem 0;
+        color: #721c24;
     }
     .neutral-sentiment {
-        background-color: #fff3cd;
-        border-left: 5px solid #ffc107;
+        background-color: #fff8e1;
+        border-left: 5px solid #ff9800;
         padding: 1rem;
         border-radius: 5px;
         margin: 1rem 0;
+        color: #663c00;
     }
     .metric-card {
         background-color: #f8f9fa;
@@ -254,10 +257,10 @@ def main():
     col1, col2, col3 = st.columns([1, 1, 4])
 
     with col1:
-        analyze_button = st.button("🔍 Analizar", type="primary", use_container_width=True)
+        analyze_button = st.button("🔍 Analizar", type="primary", width="stretch")
 
     with col2:
-        clear_button = st.button("🗑️ Limpiar", use_container_width=True)
+        clear_button = st.button("🗑️ Limpiar", width="stretch")
 
     if clear_button:
         st.rerun()
@@ -360,11 +363,11 @@ def main():
 
         with col1:
             st.markdown("**Texto Original:**")
-            st.text_area("", value=user_input, height=100, disabled=True, key="original")
+            st.text_area("Texto Original", value=user_input, height=100, disabled=True, key="original", label_visibility="collapsed")
 
         with col2:
             st.markdown("**Texto Preprocesado:**")
-            st.text_area("", value=preprocessed, height=100, disabled=True, key="preprocessed")
+            st.text_area("Texto Preprocesado", value=preprocessed, height=100, disabled=True, key="preprocessed", label_visibility="collapsed")
 
         # Estadísticas del texto
         words_original = len(user_input.split())

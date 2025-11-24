@@ -321,7 +321,8 @@ def build_lstm_model(vocab_size: int,
     print(f"   • Embedding dimension: {embedding_dim}")
     print(f"   • Longitud máxima: {max_length} palabras")
     print(f"   • LSTM units (capa 1): {config.LSTM_UNITS_1}")
-    print(f"   • LSTM units (capa 2): {config.LSTM_UNITS_2}")
+    if config.LSTM_UNITS_2:
+        print(f"   • LSTM units (capa 2): {config.LSTM_UNITS_2}")
     print(f"   • Dropout: {config.DROPOUT_RATE}")
 
     # Construir modelo
