@@ -4,7 +4,12 @@ Ejecuta todos los análisis en orden
 """
 import subprocess
 import sys
+import io
 from pathlib import Path
+
+# Configurar codificación UTF-8 para Windows
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 def print_banner(text):
     """Imprime un banner decorativo"""

@@ -74,8 +74,12 @@ print(f"\n⚙️  Descomponiendo matriz con SVD...")
 # Convertir a matriz sparse para eficiencia
 ratings_sparse = csr_matrix(ratings_filled.values)
 
-# Aplicar SVD con 50 factores latentes
-U, sigma, Vt = svds(ratings_sparse, k=50)
+# Aplicar SVD con k factores latentes (máximo posible es min(shape)-1)
+# Para datasets pequeños, usar k menor
+k = min(50, min(ratings_sparse.shape) - 2)
+print(f"   - Usando k={k} factores latentes (límite: {min(ratings_sparse.shape) - 1})")
+
+U, sigma, Vt = svds(ratings_sparse, k=k)
 
 print(f"✅ SVD completado")
 print(f"   - U (usuarios): {U.shape}")
