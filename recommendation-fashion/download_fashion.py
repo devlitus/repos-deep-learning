@@ -1,17 +1,14 @@
 """
-Script para descargar el dataset Amazon Fashion Reviews
+Script para descargar el dataset Amazon Fashion Reviews desde Hugging Face
+Fuente: https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023
 """
 import os
-import gzip
-import shutil
-import requests
-from pathlib import Path
-from tqdm import tqdm
 import json
+from pathlib import Path
 
-def download_fashion_dataset(output_dir='.\\data\\raw'):
+def download_fashion_dataset(output_dir='data/raw'):
     """
-    Descarga el dataset Amazon Fashion Reviews
+    Descarga el dataset Amazon Fashion Reviews desde Hugging Face
 
     Este script descarga las reviews de ropa del dataset de Amazon.
     El dataset contiene: asin (product ID), reviewerID, overall (rating),
@@ -23,61 +20,71 @@ def download_fashion_dataset(output_dir='.\\data\\raw'):
     # Crear directorio si no existe
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    # URL del dataset comprimido (Amazon Fashion Reviews - Clothing, Shoes and Jewelry)
-    # Fuente: https://datarepo.eng.ucsd.edu/ (actualizado 2024)
-    # URL anterior (deprecated): http://jmcauley.ucsd.edu/data/amazon/categoryFilesSmall/...
-    url = "https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_v2/categoryFiles/Clothing_Shoes_and_Jewelry.json.gz"
-    gz_path = os.path.join(output_dir, "Clothing_Shoes_and_Jewelry.json.gz")
     json_path = os.path.join(output_dir, "fashion_reviews.json")
 
-    print("="*60)
-    print("📥 Descargando Amazon Fashion Reviews Dataset...")
-    print("="*60)
-    print(f"URL: {url}")
+    print("=" * 70)
+    print("📥 Descargando Amazon Fashion Reviews Dataset desde Hugging Face...")
+    print("=" * 70)
     print(f"Destino: {output_dir}")
+    print(f"Dataset: McAuley-Lab/Amazon-Reviews-2023")
+    print(f"Categoría: Clothing, Shoes and Jewelry")
+
+    # Usar Hugging Face datasets
+    try:
+        from datasets import load_dataset
+    except ImportError:
+        print("\n❌ Error: 'datasets' no está instalado")
+        print("Instala con: pip install datasets")
+        print("\nAlternativas:")
+        print("1. Descarga manual desde: https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023")
+        print("2. O desde: https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_v2/categoryFiles/")
+        return False
 
     try:
-        # Descargar el archivo
-        response = requests.get(url, stream=True, timeout=30)
-        total_size = int(response.headers.get('content-length', 0))
+        print("\n⏳ Cargando dataset desde Hugging Face...")
+        print("   (Primera vez tardará un poco, se cachea localmente)")
 
-        print(f"\n📊 Tamaño del archivo: {total_size / (1024**2):.2f} MB")
+        # Cargar dataset - filtrando solo ropa
+        dataset = load_dataset(
+            "McAuley-Lab/Amazon-Reviews-2023",
+            "raw_meta_Clothing_Shoes_and_Jewelry",
+            trust_remote_code=True,
+            split="full"
+        )
 
-        with open(gz_path, 'wb') as file, tqdm(
-            desc="Descargando",
-            total=total_size,
-            unit='B',
-            unit_scale=True,
-            unit_divisor=1024,
-        ) as bar:
-            for data in response.iter_content(chunk_size=8192):
-                size = file.write(data)
-                bar.update(size)
+        print(f"\n✅ Dataset cargado: {len(dataset)} registros")
+        print(f"   Columnas: {dataset.column_names}")
 
-        print(f"\n✅ Descarga completada: {gz_path}")
+        # Convertir a JSONL
+        print(f"\n💾 Guardando en formato JSONL...")
+        count = 0
+        with open(json_path, 'w', encoding='utf-8') as f:
+            for row in dataset:
+                # Convertir a formato compatible
+                review = {
+                    'reviewerID': row.get('reviewer_id', ''),
+                    'asin': row.get('asin', ''),
+                    'overall': float(row.get('rating', 0)),
+                    'summary': row.get('title', ''),
+                    'reviewText': row.get('text', ''),
+                    'unixReviewTime': row.get('timestamp', 0)
+                }
+                f.write(json.dumps(review) + '\n')
+                count += 1
 
-        # Descomprimir el archivo
-        print("\n📂 Descomprimiendo archivo...")
-        with gzip.open(gz_path, 'rb') as f_in:
-            with open(json_path, 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
+                if (count + 1) % 10000 == 0:
+                    print(f"   ✓ {count + 1:,} reviews guardados...")
 
-        print(f"✅ Archivo descomprimido: {json_path}")
+        print(f"\n✅ Dataset guardado: {json_path}")
+        print(f"   Total de reviews: {count:,}")
 
-        # Mostrar información del dataset
-        print("\n📊 Información del dataset:")
-        print(f"  - Total de reviews: ~2.7 millones")
-        print(f"  - Productos únicos: ~180,000")
-        print(f"  - Usuarios únicos: ~800,000")
-        print(f"  - Rango de ratings: 1-5 estrellas")
+        # Mostrar información
+        file_size = os.path.getsize(json_path) / (1024 * 1024)
+        print(f"   Tamaño del archivo: {file_size:.2f} MB")
 
-        # Eliminar archivo gz para ahorrar espacio
-        os.remove(gz_path)
-        print(f"\n🗑️  Archivo .gz eliminado para ahorrar espacio")
-
-        print("\n" + "="*60)
+        print("\n" + "=" * 70)
         print("🎉 ¡Dataset descargado exitosamente!")
-        print("="*60)
+        print("=" * 70)
         print("\nEstructura de los datos:")
         print("  Cada línea es un JSON con:")
         print("    - reviewerID: ID del usuario")
@@ -87,18 +94,20 @@ def download_fashion_dataset(output_dir='.\\data\\raw'):
         print("    - summary: Resumen de la review")
         print("    - unixReviewTime: Timestamp")
 
-        print("\nPróximos pasos:")
-        print("1. Procesar los datos JSON")
-        print("2. Crear matriz de ratings usuario-producto")
-        print("3. Entrenar sistemas de recomendación")
-        print(f"4. Los datos están en: {json_path}")
+        print("\n✅ Próximos pasos:")
+        print("   python main.py  # Ejecutar pipeline de análisis")
 
-    except requests.exceptions.RequestException as e:
-        print(f"\n❌ Error descargando el archivo: {e}")
-        print("\nAlternativas para obtener el dataset:")
-        print("1. Descargar manualmente de: http://jmcauley.ucsd.edu/data/amazon/")
-        print("2. Buscar en Kaggle: 'Amazon Fashion Reviews'")
-        print("3. Usar un subset más pequeño para pruebas")
+        return True
+
+    except Exception as e:
+        print(f"\n❌ Error descargando el dataset: {e}")
+        print("\n📥 Alternativas para obtener el dataset:")
+        print("1. Descargar desde Hugging Face:")
+        print("   https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023")
+        print("\n2. Descargar desde UCSD Datarepo:")
+        print("   https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_v2/categoryFiles/")
+        print("\n3. Usar datos de prueba:")
+        print("   python generate_test_dataset.py")
         raise
 
 if __name__ == "__main__":
