@@ -1,22 +1,22 @@
 
 # Manipulación de datos
-pandas
-numpy
-matplotlib
-seaborn
-plotly
+pandas>=2.2.0
+numpy>=2.0.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
+plotly>=5.14.0
 
 # Machine Learning
-scikit-learn
-scipy
+scikit-learn>=1.5.0
+scipy>=1.11.0
 
 # Web Application
-streamlit
+streamlit>=1.40.0
 
 # Notebooks (opcional)
-jupyter
-ipykernel
+jupyter>=1.0.0
+ipykernel>=6.26.0
 
 # Utilidades
-requests
-tqdm
+requests>=2.31.0
+tqdm>=4.66.0
