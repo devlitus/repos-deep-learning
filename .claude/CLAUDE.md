@@ -1,6 +1,9 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Always response in Spanish
+My operating system is Windows 11
+
 
 ## Repository Overview
 
@@ -414,6 +417,10 @@ python download_movielens.py   # Downloads MovieLens 100K dataset
 ```bash
 python save_scaler.py  # Persists MinMaxScaler for future predictions
 ```
+
+## Testing
+
+No unit tests exist. The `tests/` directories are empty. Validation is done by running `python main.py` and inspecting printed output and generated reports.
 
 ## Common Errors to Avoid
 
