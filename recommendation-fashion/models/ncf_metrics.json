@@ -1,0 +1,35 @@
+{
+  "model_type": "Neural Collaborative Filtering",
+  "architecture": {
+    "n_users": 200,
+    "n_products": 500,
+    "embedding_dim": 64,
+    "hidden_layers": [
+      128,
+      64,
+      32
+    ],
+    "total_params": 71681,
+    "trainable_params": 71681
+  },
+  "hyperparameters": {
+    "batch_size": 256,
+    "learning_rate": 0.001,
+    "epochs": 10
+  },
+  "results": {
+    "train_rmse": 0.782594235385689,
+    "test_rmse": 1.3417454651780292,
+    "best_test_rmse": 1.1440183772831822,
+    "best_epoch": 1
+  },
+  "training": {
+    "time_seconds": 0.622587,
+    "device": "cpu"
+  },
+  "dataset": {
+    "total_interactions": 5000,
+    "train_size": 4000,
+    "test_size": 1000
+  }
+}
