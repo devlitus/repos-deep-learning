@@ -1,274 +1,363 @@
 """
-Análisis Exploratorio del Dataset Amazon Fashion Reviews
-Paso 1: Cargar y entender los datos de reviews de ropa
+Módulo de Análisis Exploratorio de Datos (EDA)
+Analiza distribuciones de ratings, usuarios y productos del dataset de Fashion Reviews
 """
+
 import sys
 import io
-import json
 from pathlib import Path
-
-# Configurar codificación UTF-8 para la salida en consola (Windows)
-if sys.platform == 'win32':
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import warnings
 
-# Obtener la ruta base del proyecto (directorio recommendation-fashion)
-SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_DIR = SCRIPT_DIR.parent
-DATA_DIR = PROJECT_DIR / 'data' / 'raw'
-REPORTS_DIR = PROJECT_DIR / 'reports'
-SRC_DIR = PROJECT_DIR / 'src'
+# Configurar UTF-8 para Windows
+if sys.platform == 'win32' and sys.stdout.encoding.lower() != 'utf-8':
+    try:
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    except:
+        pass
 
-# Crear directorios si no existen
-SRC_DIR.mkdir(parents=True, exist_ok=True)
-REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+# Importar configuración
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config import (
+    COL_USER_ID, COL_PRODUCT_ID, COL_RATING,
+    REPORTS_DIR, REPORT_RATINGS_DIST, REPORT_TOP_USERS, REPORT_TOP_PRODUCTS,
+    PLOT_STYLE, PLOT_DPI
+)
 
-# Configuración de visualización
-sns.set_style("whitegrid")
-plt.rcParams['figure.figsize'] = (12, 6)
+warnings.filterwarnings('ignore')
 
-# =============================================================================
-# PASO 1: CARGAR LOS DATOS
-# =============================================================================
 
-print("=" * 60)
-print("📊 ANÁLISIS EXPLORATORIO - AMAZON FASHION REVIEWS")
-print("=" * 60)
+def print_header(text):
+    print("\n" + "=" * 80)
+    print(f"  {text}")
+    print("=" * 80)
 
-json_file = DATA_DIR / 'fashion_reviews.json'
 
-# Verificar que el archivo existe
-if not json_file.exists():
-    print(f"\n❌ Error: No se encontró {json_file}")
-    print(f"Por favor, ejecuta primero: python download_fashion.py")
-    sys.exit(1)
+def print_step(text):
+    print(f"\n{'─' * 80}")
+    print(f"📍 {text}")
+    print("─" * 80)
 
-print("\n📥 Cargando datos JSON...")
-print(f"Archivo: {json_file}")
 
-# Cargar datos JSON (línea por línea)
-reviews = []
-try:
-    with open(json_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            try:
-                review = json.loads(line.strip())
-                reviews.append(review)
-            except json.JSONDecodeError:
-                continue
+def analyze_ratings(df):
+    """
+    Analiza la distribución de ratings del dataset.
 
-    print(f"✅ {len(reviews):,} reviews cargadas exitosamente!")
+    Args:
+        df: DataFrame con las reviews
 
-    # Convertir a DataFrame
-    df = pd.DataFrame(reviews)
+    Returns:
+        dict: Estadísticas de ratings
+    """
+    print_step("Análisis de Distribución de Ratings")
 
-    # Seleccionar columnas relevantes
-    relevant_cols = ['reviewerID', 'asin', 'overall', 'reviewText', 'summary', 'unixReviewTime']
-    df = df[[col for col in relevant_cols if col in df.columns]]
+    rating_counts = df[COL_RATING].value_counts().sort_index()
+    rating_percentages = (rating_counts / len(df) * 100).round(2)
 
-    # Renombrar columnas para consistencia
-    df.columns = ['user_id', 'product_id', 'rating', 'review_text', 'summary', 'timestamp']
+    print("\n⭐ Distribución de Calificaciones:")
+    print("─" * 60)
+    for rating in sorted(df[COL_RATING].unique()):
+        count = rating_counts.get(rating, 0)
+        percentage = rating_percentages.get(rating, 0)
+        bar = '█' * int(percentage / 2)
+        print(f"  {rating:.0f} estrellas: {count:>6,} ({percentage:>6.2f}%) {bar}")
 
-except Exception as e:
-    print(f"\n❌ Error cargando JSON: {e}")
-    print("Por favor verifica que el archivo JSON esté bien formado")
-    sys.exit(1)
+    stats = {
+        'mean': df[COL_RATING].mean(),
+        'median': df[COL_RATING].median(),
+        'std': df[COL_RATING].std(),
+        'min': df[COL_RATING].min(),
+        'max': df[COL_RATING].max(),
+        'counts': rating_counts.to_dict()
+    }
 
-# =============================================================================
-# PASO 2: EXPLORACIÓN BÁSICA
-# =============================================================================
+    print(f"\n  Rating promedio: {stats['mean']:.2f}/5.0")
+    print(f"  Rating mediano: {stats['median']:.1f}/5.0")
+    print(f"  Desviación estándar: {stats['std']:.2f}")
 
-print("\n" + "=" * 60)
-print("📋 INFORMACIÓN BÁSICA DEL DATASET")
-print("=" * 60)
+    return stats
 
-n_reviews = len(df)
-n_unique_users = df['user_id'].nunique()
-n_unique_products = df['product_id'].nunique()
-sparsity = 1 - (n_reviews / (n_unique_users * n_unique_products))
 
-print(f"\n👕 Productos únicos: {n_unique_products:,}")
-print(f"👥 Usuarios únicos: {n_unique_users:,}")
-print(f"⭐ Reviews totales: {n_reviews:,}")
-print(f"📊 Dispersión de matriz: {sparsity*100:.2f}%")
+def analyze_users(df):
+    """
+    Analiza la actividad de los usuarios.
 
-print("\n📊 PRIMERAS FILAS:")
-print(df[['user_id', 'product_id', 'rating', 'summary']].head(10))
+    Args:
+        df: DataFrame con las reviews
 
-print("\n📊 INFORMACIÓN DEL DATASET:")
-print(df.info())
+    Returns:
+        dict: Estadísticas de usuarios
+    """
+    print_step("Análisis de Actividad de Usuarios")
 
-print("\n📈 ESTADÍSTICAS DE RATINGS:")
-print(df['rating'].describe())
+    reviews_per_user = df.groupby(COL_USER_ID).size()
+    n_users = df[COL_USER_ID].nunique()
 
-# =============================================================================
-# PASO 3: ANÁLISIS DE RATINGS
-# =============================================================================
+    print(f"\n  👥 Usuarios únicos: {n_users:,}")
+    print(f"\n  Reviews por usuario:")
+    print(f"    Min: {reviews_per_user.min()} reviews")
+    print(f"    Max: {reviews_per_user.max()} reviews")
+    print(f"    Media: {reviews_per_user.mean():.2f} reviews")
+    print(f"    Mediana: {reviews_per_user.median():.1f} reviews")
+    print(f"    P75: {reviews_per_user.quantile(0.75):.1f}")
+    print(f"    P90: {reviews_per_user.quantile(0.90):.1f}")
 
-print("\n" + "=" * 60)
-print("⭐ ANÁLISIS DE CALIFICACIONES")
-print("=" * 60)
+    # Top 10 usuarios más activos
+    top_users = reviews_per_user.nlargest(10)
+    print(f"\n  🏆 Top 10 Usuarios Más Activos:")
+    for i, (user, count) in enumerate(top_users.items(), 1):
+        print(f"    {i:2d}. Usuario {user}: {count} reviews")
 
-# Distribución de ratings
-rating_counts = df['rating'].value_counts().sort_index()
-print("\n📊 Distribución de calificaciones:")
-for rating, count in rating_counts.items():
-    percentage = (count / len(df)) * 100
-    bar = "█" * int(percentage / 2)
-    print(f"  {int(rating)} estrellas: {count:>7,} ({percentage:5.2f}%) {bar}")
+    stats = {
+        'n_users': n_users,
+        'reviews_per_user': reviews_per_user,
+        'mean': reviews_per_user.mean(),
+        'median': reviews_per_user.median(),
+        'min': reviews_per_user.min(),
+        'max': reviews_per_user.max(),
+        'top_users': top_users
+    }
 
-# Rating promedio
-avg_rating = df['rating'].mean()
-print(f"\n⭐ Rating promedio: {avg_rating:.2f}/5.0")
+    return stats
 
-# =============================================================================
-# PASO 4: ANÁLISIS POR USUARIO Y PRODUCTO
-# =============================================================================
 
-print("\n" + "=" * 60)
-print("📊 ANÁLISIS POR USUARIO Y PRODUCTO")
-print("=" * 60)
+def analyze_products(df):
+    """
+    Analiza la popularidad de los productos.
 
-user_counts = df['user_id'].value_counts()
-product_counts = df['product_id'].value_counts()
+    Args:
+        df: DataFrame con las reviews
 
-print(f"\n👥 USUARIOS:")
-print(f"  - Mínimo de reviews por usuario: {user_counts.min()}")
-print(f"  - Promedio de reviews por usuario: {user_counts.mean():.2f}")
-print(f"  - Máximo de reviews por usuario: {user_counts.max()}")
-print(f"  - Mediana: {user_counts.median():.0f}")
+    Returns:
+        dict: Estadísticas de productos
+    """
+    print_step("Análisis de Popularidad de Productos")
 
-print(f"\n👕 PRODUCTOS:")
-print(f"  - Mínimo de reviews por producto: {product_counts.min()}")
-print(f"  - Promedio de reviews por producto: {product_counts.mean():.2f}")
-print(f"  - Máximo de reviews por producto: {product_counts.max()}")
-print(f"  - Mediana: {product_counts.median():.0f}")
+    reviews_per_product = df.groupby(COL_PRODUCT_ID).size()
+    rating_per_product = df.groupby(COL_PRODUCT_ID)[COL_RATING].mean()
+    n_products = df[COL_PRODUCT_ID].nunique()
 
-# Top 10 productos más reseñados
-print(f"\n🏆 TOP 10 PRODUCTOS MÁS RESEÑADOS:")
-top_products = product_counts.head(10)
-for idx, (prod_id, count) in enumerate(top_products.items(), 1):
-    avg_rating = df[df['product_id'] == prod_id]['rating'].mean()
-    print(f"  {idx}. Producto {prod_id}: {count:,} reviews (rating promedio: {avg_rating:.2f})")
+    print(f"\n  👕 Productos únicos: {n_products:,}")
+    print(f"\n  Reviews por producto:")
+    print(f"    Min: {reviews_per_product.min()} reviews")
+    print(f"    Max: {reviews_per_product.max()} reviews")
+    print(f"    Media: {reviews_per_product.mean():.2f} reviews")
+    print(f"    Mediana: {reviews_per_product.median():.1f} reviews")
 
-# Top 10 usuarios más activos
-print(f"\n👤 TOP 10 USUARIOS MÁS ACTIVOS:")
-top_users = user_counts.head(10)
-for idx, (user_id, count) in enumerate(top_users.items(), 1):
-    print(f"  {idx}. Usuario {user_id}: {count:,} reviews")
+    # Top 10 productos más reseñados
+    top_products = reviews_per_product.nlargest(10)
+    print(f"\n  🏆 Top 10 Productos Más Reseñados:")
+    for i, (product, count) in enumerate(top_products.items(), 1):
+        avg_rating = rating_per_product[product]
+        print(f"    {i:2d}. Producto {product}: {count:2d} reviews (Rating: {avg_rating:.2f}⭐)")
 
-# =============================================================================
-# PASO 5: VISUALIZACIONES
-# =============================================================================
+    stats = {
+        'n_products': n_products,
+        'reviews_per_product': reviews_per_product,
+        'rating_per_product': rating_per_product,
+        'mean': reviews_per_product.mean(),
+        'median': reviews_per_product.median(),
+        'min': reviews_per_product.min(),
+        'max': reviews_per_product.max(),
+        'top_products': top_products
+    }
 
-print("\n" + "=" * 60)
-print("📈 GENERANDO VISUALIZACIONES")
-print("=" * 60)
+    return stats
 
-# 1. Distribución de ratings
-fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-# Gráfico de barras
-rating_counts.plot(kind='bar', ax=axes[0], color='steelblue', edgecolor='black')
-axes[0].set_title('Distribución de Calificaciones', fontsize=14, fontweight='bold')
-axes[0].set_xlabel('Rating (estrellas)', fontsize=12)
-axes[0].set_ylabel('Número de Reviews', fontsize=12)
-axes[0].set_xticklabels(axes[0].get_xticklabels(), rotation=0)
-axes[0].grid(True, alpha=0.3)
+def plot_rating_distribution(df):
+    """
+    Genera gráfico de distribución de ratings (bar + pie chart).
+    Guarda en reports/rating_distribution.png
 
-# Gráfico de pastel
-colors = ['#d62728', '#ff7f0e', '#ffbb78', '#2ca02c', '#1f77b4']
-axes[1].pie(rating_counts.values, labels=rating_counts.index, autopct='%1.1f%%',
-            colors=colors, startangle=90)
-axes[1].set_title('Proporción de Calificaciones', fontsize=14, fontweight='bold')
+    Args:
+        df: DataFrame con las reviews
+    """
+    print_step("Generando gráfico de distribución de ratings")
 
-plt.tight_layout()
-plt.savefig(REPORTS_DIR / 'rating_distribution.png', dpi=300, bbox_inches='tight')
-print("✅ Gráfico guardado: rating_distribution.png")
-plt.close()
+    try:
+        plt.style.use(PLOT_STYLE)
+    except:
+        pass
 
-# 2. Distribución de reviews por usuario
-fig, ax = plt.subplots(figsize=(12, 6))
-user_counts.head(30).plot(kind='barh', ax=ax, color='coral', edgecolor='black')
-ax.set_title('Top 30 Usuarios más Activos', fontsize=14, fontweight='bold')
-ax.set_xlabel('Número de Reviews', fontsize=12)
-ax.set_ylabel('Usuario', fontsize=12)
-ax.grid(True, alpha=0.3, axis='x')
+    rating_counts = df[COL_RATING].value_counts().sort_index()
 
-plt.tight_layout()
-plt.savefig(REPORTS_DIR / 'top_users.png', dpi=300, bbox_inches='tight')
-print("✅ Gráfico guardado: top_users.png")
-plt.close()
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-# 3. Distribución de reviews por producto
-fig, ax = plt.subplots(figsize=(12, 6))
-product_counts.head(30).plot(kind='barh', ax=ax, color='lightgreen', edgecolor='black')
-ax.set_title('Top 30 Productos más Reseñados', fontsize=14, fontweight='bold')
-ax.set_xlabel('Número de Reviews', fontsize=12)
-ax.set_ylabel('Producto ID', fontsize=12)
-ax.grid(True, alpha=0.3, axis='x')
+    # Gráfico de barras
+    ax1 = axes[0]
+    rating_counts.plot(kind='bar', ax=ax1, color='steelblue', edgecolor='black')
+    ax1.set_title('Número de Reviews por Calificación', fontsize=12, fontweight='bold')
+    ax1.set_xlabel('Calificación (estrellas)')
+    ax1.set_ylabel('Cantidad de Reviews')
+    ax1.grid(axis='y', alpha=0.3)
+    ax1.set_xticklabels(ax1.get_xticklabels(), rotation=0)
 
-plt.tight_layout()
-plt.savefig(REPORTS_DIR / 'top_products.png', dpi=300, bbox_inches='tight')
-print("✅ Gráfico guardado: top_products.png")
-plt.close()
+    for i, v in enumerate(rating_counts):
+        ax1.text(i, v + 50, str(v), ha='center', fontweight='bold')
 
-# 4. Histogramas de distribución
-fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    # Gráfico de pastel
+    ax2 = axes[1]
+    colors = ['#FF6B6B', '#FFA06B', '#FFD93D', '#A8D93D', '#6BCA6B']
+    ax2.pie(rating_counts, labels=rating_counts.index, autopct='%1.1f%%',
+            colors=colors[:len(rating_counts)], startangle=90,
+            wedgeprops={'edgecolor': 'black'})
+    ax2.set_title('Porcentaje de Reviews por Calificación', fontsize=12, fontweight='bold')
 
-# Reviews por usuario
-axes[0].hist(user_counts.values, bins=50, color='skyblue', edgecolor='black', alpha=0.7)
-axes[0].set_title('Distribución: Reviews por Usuario', fontsize=14, fontweight='bold')
-axes[0].set_xlabel('Número de Reviews', fontsize=12)
-axes[0].set_ylabel('Frecuencia', fontsize=12)
-axes[0].set_xscale('log')
-axes[0].grid(True, alpha=0.3)
+    plt.tight_layout()
 
-# Reviews por producto
-axes[1].hist(product_counts.values, bins=50, color='lightcoral', edgecolor='black', alpha=0.7)
-axes[1].set_title('Distribución: Reviews por Producto', fontsize=14, fontweight='bold')
-axes[1].set_xlabel('Número de Reviews', fontsize=12)
-axes[1].set_ylabel('Frecuencia', fontsize=12)
-axes[1].set_xscale('log')
-axes[1].grid(True, alpha=0.3)
+    output_path = REPORT_RATINGS_DIST
+    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.close()
 
-plt.tight_layout()
-plt.savefig(REPORTS_DIR / 'distribution_histogram.png', dpi=300, bbox_inches='tight')
-print("✅ Gráfico guardado: distribution_histogram.png")
-plt.close()
+    print(f"  ✅ Gráfico guardado: {output_path.name}")
 
-# =============================================================================
-# PASO 6: RESUMEN Y ESTADÍSTICAS
-# =============================================================================
 
-print("\n" + "=" * 60)
-print("📌 RESUMEN ESTADÍSTICO FINAL")
-print("=" * 60)
+def plot_user_distribution(df):
+    """
+    Genera gráfico de distribución de reviews por usuario (histogram + boxplot).
+    Guarda en reports/top_users.png
 
-summary_stats = {
-    'Total de Reviews': f"{n_reviews:,}",
-    'Usuarios Únicos': f"{n_unique_users:,}",
-    'Productos Únicos': f"{n_unique_products:,}",
-    'Dispersión de Matriz': f"{sparsity*100:.2f}%",
-    'Rating Promedio': f"{avg_rating:.2f}",
-    'Rating Mínimo': f"{df['rating'].min():.1f}",
-    'Rating Máximo': f"{df['rating'].max():.1f}",
-    'Reviews/Usuario (promedio)': f"{user_counts.mean():.2f}",
-    'Reviews/Producto (promedio)': f"{product_counts.mean():.2f}",
-}
+    Args:
+        df: DataFrame con las reviews
+    """
+    print_step("Generando gráfico de distribución de usuarios")
 
-for key, value in summary_stats.items():
-    print(f"{key:.<40} {value}")
+    try:
+        plt.style.use(PLOT_STYLE)
+    except:
+        pass
 
-print("\n" + "=" * 60)
-print("✅ ANÁLISIS EXPLORATORIO COMPLETADO")
-print("=" * 60)
-print("\nPróximos pasos:")
-print("1. Ejecutar: python src/user_based_collaborative_filtering.py")
-print("2. Ejecutar: python src/item_based_collaborative_filtering.py")
-print("3. Ejecutar: python src/matrix_factorization_svd.py")
-print("4. Ver resultados en la carpeta reports/")
+    reviews_per_user = df.groupby(COL_USER_ID).size()
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    # Histograma
+    ax1 = axes[0]
+    reviews_per_user.hist(bins=20, ax=ax1, color='coral', edgecolor='black')
+    ax1.axvline(reviews_per_user.mean(), color='red', linestyle='--', linewidth=2,
+                label=f'Media: {reviews_per_user.mean():.2f}')
+    ax1.axvline(reviews_per_user.median(), color='green', linestyle='--', linewidth=2,
+                label=f'Mediana: {reviews_per_user.median():.1f}')
+    ax1.set_xlabel('Reviews por Usuario')
+    ax1.set_ylabel('Cantidad de Usuarios')
+    ax1.set_title('Distribución: Reviews por Usuario', fontweight='bold')
+    ax1.legend()
+    ax1.grid(alpha=0.3)
+
+    # Box plot
+    ax2 = axes[1]
+    ax2.boxplot(reviews_per_user, vert=True)
+    ax2.set_ylabel('Reviews por Usuario')
+    ax2.set_title('Box Plot: Reviews por Usuario', fontweight='bold')
+    ax2.grid(alpha=0.3, axis='y')
+    ax2.set_xticklabels(['Reviews/Usuario'])
+
+    plt.tight_layout()
+
+    output_path = REPORT_TOP_USERS
+    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.close()
+
+    print(f"  ✅ Gráfico guardado: {output_path.name}")
+
+
+def plot_product_distribution(df):
+    """
+    Genera gráfico de distribución de reviews por producto (histogram + top-15 bar).
+    Guarda en reports/top_products.png
+
+    Args:
+        df: DataFrame con las reviews
+    """
+    print_step("Generando gráfico de distribución de productos")
+
+    try:
+        plt.style.use(PLOT_STYLE)
+    except:
+        pass
+
+    reviews_per_product = df.groupby(COL_PRODUCT_ID).size()
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    # Histograma
+    ax1 = axes[0]
+    reviews_per_product.hist(bins=30, ax=ax1, color='skyblue', edgecolor='black')
+    ax1.axvline(reviews_per_product.mean(), color='red', linestyle='--', linewidth=2,
+                label=f'Media: {reviews_per_product.mean():.2f}')
+    ax1.axvline(reviews_per_product.median(), color='green', linestyle='--', linewidth=2,
+                label=f'Mediana: {reviews_per_product.median():.1f}')
+    ax1.set_xlabel('Reviews por Producto')
+    ax1.set_ylabel('Cantidad de Productos')
+    ax1.set_title('Distribución: Reviews por Producto', fontweight='bold')
+    ax1.legend()
+    ax1.grid(alpha=0.3)
+
+    # Top 15 productos
+    ax2 = axes[1]
+    top_15 = reviews_per_product.nlargest(15)
+    top_15.plot(kind='barh', ax=ax2, color='skyblue', edgecolor='black')
+    ax2.set_xlabel('Cantidad de Reviews')
+    ax2.set_title('Top 15 Productos Más Reseñados', fontweight='bold')
+    ax2.grid(alpha=0.3, axis='x')
+
+    plt.tight_layout()
+
+    output_path = REPORT_TOP_PRODUCTS
+    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.close()
+
+    print(f"  ✅ Gráfico guardado: {output_path.name}")
+
+
+def run_full_eda(df):
+    """
+    Ejecuta el análisis exploratorio completo.
+
+    Args:
+        df: DataFrame con las reviews
+
+    Returns:
+        dict: Resultados de todos los análisis
+    """
+    print_header("📊 ANÁLISIS EXPLORATORIO DE DATOS (EDA)")
+
+    results = {}
+
+    # Análisis estadístico
+    results['ratings'] = analyze_ratings(df)
+    results['users'] = analyze_users(df)
+    results['products'] = analyze_products(df)
+
+    # Generar gráficos
+    plot_rating_distribution(df)
+    plot_user_distribution(df)
+    plot_product_distribution(df)
+
+    # Resumen
+    print_step("Resumen del EDA")
+    n_reviews = len(df)
+    n_users = results['users']['n_users']
+    n_products = results['products']['n_products']
+    sparsity = (1 - n_reviews / (n_users * n_products)) * 100
+
+    print(f"\n  📌 INSIGHTS CLAVE:")
+    print(f"\n  1️⃣  DATOS DISPERSOS: {sparsity:.1f}% de la matriz está vacía")
+    print(f"  2️⃣  USUARIOS: Promedio {results['users']['mean']:.1f} reviews/usuario")
+    print(f"  3️⃣  PRODUCTOS: Promedio {results['products']['mean']:.1f} reviews/producto")
+    print(f"  4️⃣  RATINGS: Promedio {results['ratings']['mean']:.2f}/5.0")
+
+    print(f"\n  ✅ EDA completado - {3} gráficos generados en reports/")
+
+    return results
+
+
+if __name__ == '__main__':
+    from data_loader import load_data
+
+    df = load_data()
+    results = run_full_eda(df)

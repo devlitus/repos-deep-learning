@@ -1,360 +1,352 @@
 """
-User-Based Collaborative Filtering para Amazon Fashion Reviews
-Paso 3: Implementar sistema de recomendación basado en similitud de usuarios
+Módulo de User-Based Collaborative Filtering
+Recomienda productos basándose en la similitud entre usuarios
 """
+
 import sys
 import io
-import json
 from pathlib import Path
-
-# Configurar codificación UTF-8 para Windows
-if sys.platform == 'win32':
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-
 import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pickle
+import warnings
 
-print("=" * 70)
-print("👥 USER-BASED COLLABORATIVE FILTERING - AMAZON FASHION")
-print("=" * 70)
+# Configurar UTF-8 para Windows
+if sys.platform == 'win32' and sys.stdout.encoding.lower() != 'utf-8':
+    try:
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    except:
+        pass
 
-# =============================================================================
-# PASO 1: CARGAR Y PREPARAR DATOS
-# =============================================================================
-
-print("\n📊 Cargando datos...")
-
-# Obtener ruta del proyecto
-SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_DIR = SCRIPT_DIR.parent
-DATA_DIR = PROJECT_DIR / 'data' / 'raw'
-
-# Cargar ratings desde JSON
-json_file = DATA_DIR / 'fashion_reviews.json'
-
-if not json_file.exists():
-    print(f"❌ Error: No se encontró {json_file}")
-    print("Por favor ejecuta primero: python download_fashion.py")
-    sys.exit(1)
-
-# Cargar datos JSON
-reviews = []
-print("📥 Cargando datos JSON...")
-with open(json_file, 'r', encoding='utf-8') as f:
-    for line in f:
-        try:
-            review = json.loads(line.strip())
-            reviews.append({
-                'user_id': review.get('reviewerID'),
-                'product_id': review.get('asin'),
-                'rating': review.get('overall')
-            })
-        except json.JSONDecodeError:
-            continue
-
-ratings = pd.DataFrame(reviews)
-print(f"✅ Datos cargados: {len(ratings):,} reviews")
-
-# Crear matriz user-item (usuario × producto)
-ratings_matrix = ratings.pivot_table(
-    index='user_id',
-    columns='product_id',
-    values='rating',
-    aggfunc='mean'  # Si hay duplicados, tomar promedio
+# Importar configuración
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config import (
+    COL_USER_ID, COL_PRODUCT_ID, COL_RATING,
+    USER_CF_K_NEIGHBORS, RANDOM_STATE,
+    REPORTS_DIR, MODELS_DIR, PLOT_STYLE,
+    REPORT_USER_SIMILARITY_DIST, REPORT_USER_BASED_PREDICTIONS,
+    USER_SIMILARITY_FILE
 )
 
-print(f"\n📐 Matriz de ratings: {ratings_matrix.shape[0]} usuarios × {ratings_matrix.shape[1]} productos")
-print(f"📊 Dispersión: {(1 - ratings_matrix.notna().sum().sum() / (ratings_matrix.shape[0] * ratings_matrix.shape[1])) * 100:.2f}%")
+warnings.filterwarnings('ignore')
 
-# =============================================================================
-# PASO 2: CALCULAR SIMILITUD ENTRE USUARIOS
-# =============================================================================
 
-print("\n" + "=" * 70)
-print("🔢 CALCULANDO SIMILITUD ENTRE USUARIOS")
-print("=" * 70)
+def print_header(text):
+    print("\n" + "=" * 80)
+    print(f"  {text}")
+    print("=" * 80)
 
-# Rellenar NaN con 0 para el cálculo de similitud
-ratings_matrix_filled = ratings_matrix.fillna(0)
 
-print("\n⚙️  Calculando matriz de similitud del coseno...")
-print("   (Esto puede tardar un poco según el tamaño del dataset...)")
+def print_step(text):
+    print(f"\n{'─' * 80}")
+    print(f"📍 {text}")
+    print("─" * 80)
 
-# Calcular similitud del coseno entre usuarios
-user_similarity = cosine_similarity(ratings_matrix_filled)
 
-# Convertir a DataFrame
-user_similarity_df = pd.DataFrame(
-    user_similarity,
-    index=ratings_matrix.index,
-    columns=ratings_matrix.index
-)
-
-print(f"✅ Matriz de similitud creada: {user_similarity_df.shape[0]} × {user_similarity_df.shape[1]}")
-
-# Mostrar ejemplo de similitudes
-if len(ratings_matrix) > 0:
-    example_user = ratings_matrix.index[0]
-    print(f"\n📊 Ejemplo - Similitud del Usuario {example_user} con otros:")
-    user_similarities = user_similarity_df.loc[example_user].sort_values(ascending=False).head(6)
-    for user, sim in user_similarities.items():
-        print(f"  - Usuario {user}: {sim:.4f}")
-
-# =============================================================================
-# PASO 3: FUNCIÓN PARA ENCONTRAR USUARIOS SIMILARES
-# =============================================================================
-
-def find_similar_users(user_id, similarity_df, k=10):
+def calculate_user_similarity(rating_matrix):
     """
-    Encuentra los k usuarios más similares a un usuario dado
+    Calcula la matriz de similitud coseno entre usuarios.
 
     Args:
-        user_id: ID del usuario
-        similarity_df: DataFrame con similitudes
-        k: Número de usuarios similares a retornar
+        rating_matrix: DataFrame (usuarios x productos) con ratings
 
     Returns:
-        Series con los k usuarios más similares y sus similitudes
+        pd.DataFrame: Matriz de similitud usuario-usuario
     """
-    try:
-        similarities = similarity_df.loc[user_id]
-        similar_users = similarities.sort_values(ascending=False)[1:k+1]
-        return similar_users
-    except KeyError:
-        return pd.Series(dtype=float)
+    print_step("Calculando similitud entre usuarios")
 
-# =============================================================================
-# PASO 4: FUNCIÓN PARA PREDECIR RATING
-# =============================================================================
+    # Llenar NaN con 0 para calcular similitud
+    rating_matrix_filled = rating_matrix.fillna(0)
 
-def predict_rating(user_id, product_id, ratings_matrix, similarity_df, k=10):
+    # Calcular similitud coseno
+    user_sim = cosine_similarity(rating_matrix_filled)
+
+    # Convertir a DataFrame
+    user_similarity_df = pd.DataFrame(
+        user_sim,
+        index=rating_matrix.index,
+        columns=rating_matrix.index
+    )
+
+    # Estadísticas
+    similarities_no_diag = user_sim[np.triu_indices_from(user_sim, k=1)]
+    print(f"  ✅ Matriz de similitud: {user_similarity_df.shape}")
+    print(f"  Similitud media: {similarities_no_diag.mean():.4f}")
+    print(f"  Similitud máxima: {similarities_no_diag.max():.4f}")
+
+    return user_similarity_df
+
+
+def predict_rating_user_based(user_id, product_id, rating_matrix, similarity_df, k=None):
     """
-    Predice el rating que un usuario daría a un producto
-    usando el promedio ponderado de usuarios similares
+    Predice el rating que un usuario daría a un producto usando User-Based CF.
 
     Args:
         user_id: ID del usuario
         product_id: ID del producto
-        ratings_matrix: Matriz de ratings
-        similarity_df: Matriz de similitudes
-        k: Número de usuarios similares a considerar
+        rating_matrix: DataFrame (usuarios x productos)
+        similarity_df: DataFrame de similitud usuario-usuario
+        k: Número de vecinos similares (default: config.USER_CF_K_NEIGHBORS)
 
     Returns:
-        Rating predicho (float)
+        float: Rating predicho (1-5)
     """
-    # Encontrar usuarios similares
-    similar_users = find_similar_users(user_id, similarity_df, k)
+    if k is None:
+        k = USER_CF_K_NEIGHBORS
 
-    if len(similar_users) == 0:
-        return 3.0
-
-    # Obtener ratings de usuarios similares para este producto
     try:
-        similar_users_ratings = ratings_matrix.loc[similar_users.index, product_id]
-    except KeyError:
+        # Encontrar usuarios similares (excluir el propio usuario)
+        similar_users = similarity_df[user_id].sort_values(ascending=False)[1:k + 1]
+
+        # Filtrar usuarios que hayan revisado este producto
+        similar_users_who_rated = similar_users[
+            rating_matrix.loc[similar_users.index, product_id].notna()
+        ]
+
+        # Si nadie similar revisó el producto, retornar promedio del producto
+        if len(similar_users_who_rated) == 0:
+            avg = rating_matrix[product_id].mean()
+            return float(avg) if not pd.isna(avg) else 3.0
+
+        # Calcular predicción ponderada
+        ratings = rating_matrix.loc[similar_users_who_rated.index, product_id]
+        similarities = similar_users_who_rated.values
+
+        denominator = np.sum(similarities)
+        if denominator == 0:
+            return 3.0
+
+        predicted_rating = np.sum(similarities * ratings) / denominator
+
+        # Limitar a rango [1, 5]
+        return float(np.clip(predicted_rating, 1.0, 5.0))
+
+    except Exception:
         return 3.0
 
-    # Eliminar NaN
-    valid_ratings = similar_users_ratings.dropna()
 
-    if len(valid_ratings) == 0:
-        user_mean = ratings_matrix.loc[user_id].mean()
-        return user_mean if not np.isnan(user_mean) else 3.0
-
-    # Obtener similitudes correspondientes
-    valid_similarities = similar_users.loc[valid_ratings.index]
-
-    # Calcular predicción como promedio ponderado
-    weighted_sum = (valid_similarities * valid_ratings).sum()
-    similarity_sum = valid_similarities.sum()
-
-    predicted_rating = weighted_sum / similarity_sum if similarity_sum > 0 else 3.0
-
-    return predicted_rating
-
-# =============================================================================
-# PASO 5: GENERAR RECOMENDACIONES
-# =============================================================================
-
-print("\n" + "=" * 70)
-print("🎯 GENERANDO RECOMENDACIONES")
-print("=" * 70)
-
-def get_recommendations(user_id, ratings_matrix, similarity_df, n_recommendations=10, k_neighbors=10):
+def get_recommendations_user_based(user_id, rating_matrix, similarity_df, n=5, k=None):
     """
-    Obtiene las top-N recomendaciones para un usuario
+    Genera recomendaciones personalizadas para un usuario.
 
     Args:
         user_id: ID del usuario
-        ratings_matrix: Matriz de ratings
-        similarity_df: Matriz de similitudes
-        n_recommendations: Número de recomendaciones
-        k_neighbors: Número de usuarios similares a considerar
+        rating_matrix: DataFrame (usuarios x productos)
+        similarity_df: DataFrame de similitud usuario-usuario
+        n: Número de recomendaciones
+        k: Número de vecinos similares
 
     Returns:
-        DataFrame con productos recomendados y ratings predichos
+        pd.DataFrame: Top-N productos recomendados con predicted_rating
     """
-    # Productos que el usuario ya ha calificado
-    rated_products = ratings_matrix.loc[user_id].dropna().index.tolist()
+    if k is None:
+        k = USER_CF_K_NEIGHBORS
 
-    # Todos los productos
-    all_products = ratings_matrix.columns.tolist()
+    # Productos que el usuario NO ha revisado
+    no_rated = rating_matrix.loc[user_id][rating_matrix.loc[user_id].isna()].index
 
-    # Productos sin calificar
-    unrated_products = [p for p in all_products if p not in rated_products]
+    # Predecir rating para cada producto no revisado
+    predictions = {}
+    for product in no_rated:
+        pred = predict_rating_user_based(user_id, product, rating_matrix, similarity_df, k=k)
+        predictions[product] = pred
 
-    # Predecir ratings para productos sin calificar
-    predictions = []
-    for product_id in unrated_products:
-        predicted_rating = predict_rating(user_id, product_id, ratings_matrix, similarity_df, k_neighbors)
-        predictions.append({
-            'product_id': product_id,
-            'predicted_rating': predicted_rating
-        })
+    # Ordenar por predicción
+    recommendations = pd.DataFrame(
+        list(predictions.items()),
+        columns=['product_id', 'predicted_rating']
+    ).sort_values('predicted_rating', ascending=False)
 
-    # Convertir a DataFrame y ordenar
-    recommendations_df = pd.DataFrame(predictions)
-    recommendations_df = recommendations_df.sort_values('predicted_rating', ascending=False).head(n_recommendations)
+    return recommendations.head(n)
 
-    return recommendations_df
 
-# Generar recomendaciones para algunos usuarios de prueba
-print("\n📋 Recomendaciones de ejemplo:")
-print("-" * 70)
+def evaluate_user_based(rating_matrix, similarity_df, n_samples=100):
+    """
+    Evalúa el modelo User-Based CF usando validación.
 
-sample_users = ratings_matrix.index[:min(5, len(ratings_matrix))]
-recommendations_results = []
+    Args:
+        rating_matrix: DataFrame (usuarios x productos) con ratings
+        similarity_df: DataFrame de similitud usuario-usuario
+        n_samples: Número de muestras para evaluación
 
-for user_id in sample_users:
-    print(f"\n👤 Usuario {user_id}:")
-    print("   Productos que ha calificado:", len(ratings_matrix.loc[user_id].dropna()))
+    Returns:
+        dict: Métricas {RMSE, MAE, n_predictions, y_true, y_pred}
+    """
+    print_step("Evaluando User-Based Collaborative Filtering")
 
-    recommendations = get_recommendations(
-        user_id,
-        ratings_matrix,
-        user_similarity_df,
-        n_recommendations=5,
-        k_neighbors=10
-    )
+    # Obtener pares (usuario, producto) con ratings conocidos
+    known_ratings = []
+    for user_id in rating_matrix.index:
+        rated_products = rating_matrix.loc[user_id][rating_matrix.loc[user_id].notna()].index
+        for product_id in rated_products:
+            known_ratings.append((user_id, product_id, rating_matrix.loc[user_id, product_id]))
 
-    if len(recommendations) > 0:
-        print("   Top 5 recomendaciones:")
-        for idx, (_, row) in enumerate(recommendations.iterrows(), 1):
-            print(f"      {idx}. Producto {row['product_id']}: {row['predicted_rating']:.2f}/5.0 ⭐")
-        recommendations_results.append({
-            'user_id': user_id,
-            'recommendations': recommendations
-        })
-    else:
-        print("      (No hay productos sin calificar)")
+    # Seleccionar muestras aleatorias
+    np.random.seed(RANDOM_STATE)
+    n_samples = min(n_samples, len(known_ratings))
+    sample_indices = np.random.choice(len(known_ratings), size=n_samples, replace=False)
+    samples = [known_ratings[i] for i in sample_indices]
 
-# =============================================================================
-# PASO 6: EVALUAR RECOMENDACIONES
-# =============================================================================
+    y_true = []
+    y_pred = []
 
-print("\n" + "=" * 70)
-print("📊 MÉTRICAS DE EVALUACIÓN")
-print("=" * 70)
-
-from sklearn.metrics import mean_squared_error, mean_absolute_error
-
-# Validación cruzada simple
-print("\n⚙️  Calculando métricas de evaluación...")
-
-actual_ratings = []
-predicted_ratings = []
-
-# Seleccionar un subset de datos para evaluación
-test_sample_size = min(100, len(ratings) // 100)
-test_data = ratings.sample(n=test_sample_size, random_state=42)
-
-for _, row in test_data.iterrows():
-    user_id = row['user_id']
-    product_id = row['product_id']
-    actual_rating = row['rating']
-
-    # Verificar que el usuario y producto existen en matrices
-    if user_id in ratings_matrix.index and product_id in ratings_matrix.columns:
-        # Crear matriz temporal sin esta valoración
-        temp_matrix = ratings_matrix.copy()
-        temp_matrix.loc[user_id, product_id] = np.nan
+    for user_id, product_id, true_rating in samples:
+        # Temporalmente ocultar el rating
+        original_value = rating_matrix.loc[user_id, product_id]
+        rating_matrix.loc[user_id, product_id] = np.nan
 
         # Predecir
-        predicted = predict_rating(user_id, product_id, temp_matrix, user_similarity_df, k=10)
-        predicted_ratings.append(predicted)
-        actual_ratings.append(actual_rating)
+        pred = predict_rating_user_based(user_id, product_id, rating_matrix, similarity_df)
 
-if len(actual_ratings) > 0:
-    rmse = np.sqrt(mean_squared_error(actual_ratings, predicted_ratings))
-    mae = mean_absolute_error(actual_ratings, predicted_ratings)
+        # Restaurar
+        rating_matrix.loc[user_id, product_id] = original_value
 
-    print(f"\n✅ Métricas calculadas en {len(actual_ratings)} predicciones:")
-    print(f"   - RMSE (Root Mean Square Error): {rmse:.4f}")
-    print(f"   - MAE (Mean Absolute Error): {mae:.4f}")
-    print(f"   - Rating promedio (datos): {np.mean(actual_ratings):.2f}")
-else:
-    print("❌ No se pudieron calcular métricas")
+        if not np.isnan(pred):
+            y_true.append(true_rating)
+            y_pred.append(pred)
 
-# =============================================================================
-# PASO 7: VISUALIZACIONES
-# =============================================================================
+    if len(y_true) == 0:
+        print("  ⚠️  No hay suficientes datos para evaluar")
+        return {'RMSE': None, 'MAE': None, 'n_predictions': 0}
 
-print("\n" + "=" * 70)
-print("📈 GENERANDO VISUALIZACIONES")
-print("=" * 70)
+    y_true = np.array(y_true)
+    y_pred = np.array(y_pred)
 
-REPORTS_DIR = PROJECT_DIR / 'reports'
-REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    rmse = np.sqrt(mean_squared_error(y_true, y_pred))
+    mae = mean_absolute_error(y_true, y_pred)
 
-# Gráfico 1: Distribución de similitudes
-fig, ax = plt.subplots(figsize=(12, 6))
-similarity_values = user_similarity_df.values.flatten()
-similarity_values = similarity_values[similarity_values < 1.0]  # Excluir diagonal (similitud 1.0 consigo mismo)
+    print(f"\n  📈 RESULTADOS User-Based CF:")
+    print(f"    Predicciones realizadas: {len(y_true)}")
+    print(f"    RMSE: {rmse:.4f}⭐ (error promedio ±{rmse:.2f} estrellas)")
+    print(f"    MAE:  {mae:.4f}⭐")
 
-ax.hist(similarity_values, bins=50, color='steelblue', edgecolor='black', alpha=0.7)
-ax.set_title('Distribución de Similitudes entre Usuarios (Coseno)', fontsize=14, fontweight='bold')
-ax.set_xlabel('Similitud del Coseno', fontsize=12)
-ax.set_ylabel('Frecuencia', fontsize=12)
-ax.grid(True, alpha=0.3)
+    return {
+        'RMSE': rmse,
+        'MAE': mae,
+        'n_predictions': len(y_true),
+        'y_true': y_true,
+        'y_pred': y_pred
+    }
 
-plt.tight_layout()
-plt.savefig(REPORTS_DIR / 'user_similarity_distribution.png', dpi=300, bbox_inches='tight')
-print("✅ Gráfico guardado: user_similarity_distribution.png")
-plt.close()
 
-# Gráfico 2: Métricas de evaluación (si existen)
-if len(actual_ratings) > 0:
+def visualize_user_based(results):
+    """
+    Genera visualizaciones del modelo User-Based CF.
+    Guarda en reports/user_based_cf.png
+
+    Args:
+        results: dict con y_true, y_pred del evaluate_user_based
+    """
+    print_step("Generando visualizaciones User-Based CF")
+
+    try:
+        plt.style.use(PLOT_STYLE)
+    except:
+        pass
+
+    if results.get('y_true') is None or len(results['y_true']) == 0:
+        print("  ⚠️  Sin datos para visualizar")
+        return
+
+    y_true = results['y_true']
+    y_pred = results['y_pred']
+
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-    # Predicción vs Actual
-    axes[0].scatter(actual_ratings, predicted_ratings, alpha=0.6, s=50, color='steelblue', edgecolors='black')
-    axes[0].plot([1, 5], [1, 5], 'r--', lw=2, label='Predicción perfecta')
-    axes[0].set_xlabel('Rating Real', fontsize=12)
-    axes[0].set_ylabel('Rating Predicho', fontsize=12)
-    axes[0].set_title('Rating Predicho vs Real', fontsize=14, fontweight='bold')
-    axes[0].set_xlim(0.5, 5.5)
-    axes[0].set_ylim(0.5, 5.5)
-    axes[0].legend()
-    axes[0].grid(True, alpha=0.3)
+    # Scatter: Predicción vs Real
+    ax1 = axes[0]
+    ax1.scatter(y_true, y_pred, alpha=0.6, s=50, edgecolor='black')
+    ax1.plot([1, 5], [1, 5], 'r--', linewidth=2, label='Predicción Perfecta')
+    ax1.set_xlabel('Rating Real')
+    ax1.set_ylabel('Rating Predicho')
+    ax1.set_title('User-Based CF: Predicción vs Realidad', fontweight='bold')
+    ax1.set_xlim(0.5, 5.5)
+    ax1.set_ylim(0.5, 5.5)
+    ax1.legend()
+    ax1.grid(alpha=0.3)
 
-    # Distribución de residuos
-    residuals = np.array(predicted_ratings) - np.array(actual_ratings)
-    axes[1].hist(residuals, bins=30, color='coral', edgecolor='black', alpha=0.7)
-    axes[1].axvline(0, color='r', linestyle='--', lw=2, label='Error = 0')
-    axes[1].set_xlabel('Error (Predicho - Real)', fontsize=12)
-    axes[1].set_ylabel('Frecuencia', fontsize=12)
-    axes[1].set_title('Distribución de Errores de Predicción', fontsize=14, fontweight='bold')
-    axes[1].legend()
-    axes[1].grid(True, alpha=0.3)
+    # Histograma de errores
+    ax2 = axes[1]
+    errors = y_pred - y_true
+    ax2.hist(errors, bins=15, color='skyblue', edgecolor='black', alpha=0.7)
+    ax2.axvline(0, color='red', linestyle='--', linewidth=2, label='Error = 0')
+    ax2.axvline(errors.mean(), color='green', linestyle='--', linewidth=2,
+                label=f'Error medio: {errors.mean():.3f}')
+    ax2.set_xlabel('Error (Predicción - Real)')
+    ax2.set_ylabel('Frecuencia')
+    ax2.set_title('Distribución de Errores', fontweight='bold')
+    ax2.legend()
+    ax2.grid(alpha=0.3, axis='y')
 
     plt.tight_layout()
-    plt.savefig(REPORTS_DIR / 'user_based_predictions.png', dpi=300, bbox_inches='tight')
-    print("✅ Gráfico guardado: user_based_predictions.png")
+    plt.savefig(REPORT_USER_BASED_PREDICTIONS, dpi=150, bbox_inches='tight')
     plt.close()
 
-print("\n" + "=" * 70)
-print("✅ USER-BASED COLLABORATIVE FILTERING COMPLETADO")
-print("=" * 70)
+    print(f"  ✅ Gráfico guardado: {REPORT_USER_BASED_PREDICTIONS.name}")
+
+
+def run_user_based_cf(df, rating_matrix):
+    """
+    Ejecuta el pipeline completo de User-Based Collaborative Filtering.
+
+    Args:
+        df: DataFrame con las reviews
+        rating_matrix: DataFrame (usuarios x productos)
+
+    Returns:
+        dict: Resultados incluyendo similarity_df y métricas
+    """
+    print_header("👥 USER-BASED COLLABORATIVE FILTERING")
+
+    # 1. Calcular similitud
+    user_similarity_df = calculate_user_similarity(rating_matrix)
+
+    # 2. Ejemplo de recomendaciones
+    print_step("Ejemplo de Recomendaciones")
+    sample_users = rating_matrix.index[:3]
+    for user_id in sample_users:
+        recs = get_recommendations_user_based(user_id, rating_matrix, user_similarity_df, n=5)
+        user_ratings = rating_matrix.loc[user_id][rating_matrix.loc[user_id].notna()]
+        print(f"\n  👤 Usuario {user_id} ({len(user_ratings)} reviews, promedio {user_ratings.mean():.2f}⭐):")
+        for i, (_, row) in enumerate(recs.iterrows(), 1):
+            stars = '⭐' * int(round(row['predicted_rating']))
+            print(f"    {i}. {row['product_id']}: {row['predicted_rating']:.2f}/5.0 {stars}")
+
+    # 3. Evaluar
+    eval_results = evaluate_user_based(rating_matrix, user_similarity_df, n_samples=100)
+
+    # 4. Visualizar
+    visualize_user_based(eval_results)
+
+    # 5. Guardar modelo
+    print_step("Guardando modelo User-Based CF")
+    model_data = {
+        'similarity_matrix': user_similarity_df,
+        'rating_matrix_index': rating_matrix.index.tolist(),
+        'rating_matrix_columns': rating_matrix.columns.tolist(),
+        'evaluation': eval_results,
+        'k_neighbors': USER_CF_K_NEIGHBORS
+    }
+    with open(USER_SIMILARITY_FILE, 'wb') as f:
+        pickle.dump(model_data, f)
+    print(f"  💾 Modelo guardado: {USER_SIMILARITY_FILE.name}")
+
+    print(f"\n  ✅ User-Based CF completado")
+
+    return {
+        'similarity_df': user_similarity_df,
+        'evaluation': eval_results
+    }
+
+
+if __name__ == '__main__':
+    from data_loader import load_data, prepare_data, get_user_item_matrix
+
+    df = load_data()
+    df_clean = prepare_data(df)
+    rating_matrix = get_user_item_matrix(df_clean)
+    results = run_user_based_cf(df_clean, rating_matrix)
