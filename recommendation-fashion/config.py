@@ -53,14 +53,9 @@ PROCESSED_TRAIN_TEST = DATA_PROCESSED_DIR / 'train_test_split.pkl'
 # ARCHIVOS DE MODELOS
 # =====================================
 
-# Modelos de collaborative filtering
-SVD_MODEL_FILE = MODELS_DIR / 'svd_model.pkl'
-USER_SIMILARITY_FILE = MODELS_DIR / 'user_similarity.pkl'
-ITEM_SIMILARITY_FILE = MODELS_DIR / 'item_similarity.pkl'
-HYBRID_MODEL_FILE = MODELS_DIR / 'hybrid_model.pkl'
-
-# Matrices sparse (para datasets grandes)
-USER_ITEM_SPARSE_MATRIX = MODELS_DIR / 'user_item_sparse.npz'
+# Neural Collaborative Filtering (NCF)
+NCF_MODEL_FILE = MODELS_DIR / 'ncf_model.pth'
+NCF_METRICS_FILE = REPORTS_DIR / 'ncf_metrics.json'
 
 # =====================================
 # ARCHIVOS DE REPORTES
@@ -72,25 +67,9 @@ REPORT_TOP_USERS = REPORTS_DIR / 'top_users.png'
 REPORT_TOP_PRODUCTS = REPORTS_DIR / 'top_products.png'
 REPORT_DISTRIBUTION_HISTOGRAM = REPORTS_DIR / 'distribution_histogram.png'
 
-# Collaborative Filtering
-REPORT_USER_SIMILARITY_DIST = REPORTS_DIR / 'user_similarity_distribution.png'
-REPORT_ITEM_SIMILARITY_DIST = REPORTS_DIR / 'item_similarity_distribution.png'
-REPORT_USER_BASED_PREDICTIONS = REPORTS_DIR / 'user_based_predictions.png'
-REPORT_ITEM_BASED_PREDICTIONS = REPORTS_DIR / 'item_based_predictions.png'
-
-# SVD y Matrix Factorization
-REPORT_SVD_SINGULAR_VALUES = REPORTS_DIR / 'svd_singular_values.png'
-REPORT_SVD_PREDICTIONS = REPORTS_DIR / 'svd_predictions.png'
-REPORT_SVD_LATENT_SPACE = REPORTS_DIR / 'svd_latent_space.png'
-REPORT_SVD_HEATMAP = REPORTS_DIR / 'svd_heatmap_comparison.png'
-
-# Sistema Híbrido
-REPORT_HYBRID_PREDICTIONS = REPORTS_DIR / 'hybrid_predictions.png'
-REPORT_HYBRID_COMPARISON = REPORTS_DIR / 'hybrid_comparison.png'
-
-# Deep Learning (para futuras implementaciones)
-REPORT_DL_TRAINING_CURVES = REPORTS_DIR / 'deep_learning_training_curves.png'
-REPORT_DL_PREDICTIONS = REPORTS_DIR / 'deep_learning_predictions.png'
+# NCF (Deep Learning)
+REPORT_NCF_TRAINING_CURVES = REPORTS_DIR / 'ncf_training_curves.png'
+REPORT_NCF_PREDICTIONS = REPORTS_DIR / 'ncf_predictions.png'
 
 # EDA adicional
 REPORT_EDA_USERS_DIST = REPORTS_DIR / 'eda_users_distribution.png'
@@ -100,7 +79,6 @@ REPORT_EDA_RATINGS_DIST = REPORTS_DIR / 'eda_ratings_distribution.png'
 # Métricas y evaluación
 METRICS_FILE = REPORTS_DIR / 'metrics.json'
 EVALUATION_FILE = REPORTS_DIR / 'evaluation.csv'
-USER_BASED_CF_EVALUATION = REPORTS_DIR / 'user_based_cf_evaluation.png'
 
 # =====================================
 # PARÁMETROS DE DATOS
@@ -131,42 +109,6 @@ VALIDATION_SIZE = 0.1  # Proporción para validación (10%)
 RANDOM_STATE = 42  # Para reproducibilidad
 
 # =====================================
-# PARÁMETROS DE COLLABORATIVE FILTERING
-# =====================================
-
-# User-Based Collaborative Filtering
-USER_CF_K_NEIGHBORS = 20  # Número de usuarios similares para recomendar
-USER_CF_SIMILARITY_METRIC = 'cosine'  # 'cosine', 'pearson', 'jaccard'
-USER_CF_MIN_SUPPORT = 3  # Mínimo de items en común para calcular similitud
-
-# Item-Based Collaborative Filtering
-ITEM_CF_K_NEIGHBORS = 20  # Número de productos similares
-ITEM_CF_SIMILARITY_METRIC = 'cosine'
-ITEM_CF_MIN_SUPPORT = 3  # Mínimo de usuarios en común
-
-# =====================================
-# PARÁMETROS DE SVD (Matrix Factorization)
-# =====================================
-
-SVD_K_FACTORS = 50  # Número de factores latentes (dimensiones ocultas)
-SVD_MIN_RATING = 1.0  # Rating mínimo en el dataset
-SVD_MAX_RATING = 5.0  # Rating máximo en el dataset
-SVD_DAMPING = 5  # Para dampening en predicciones (suavizado)
-SVD_REGULARIZATION = 0.02  # Regularización para evitar overfitting
-
-# =====================================
-# PARÁMETROS DE SISTEMA HÍBRIDO
-# =====================================
-
-# Pesos de combinación (deben sumar 1.0)
-HYBRID_WEIGHT_USER_CF = 0.3
-HYBRID_WEIGHT_ITEM_CF = 0.3
-HYBRID_WEIGHT_SVD = 0.4
-
-# Estrategia de combinación: 'weighted', 'voting', 'cascade'
-HYBRID_STRATEGY = 'weighted'
-
-# =====================================
 # PARÁMETROS DE EVALUACIÓN
 # =====================================
 
@@ -187,24 +129,34 @@ METRICS = [
 ]
 
 # =====================================
+# PARÁMETROS DE RECOMENDACIÓN (usados por la web app in-memory)
+# =====================================
+
+SVD_K_FACTORS = 50  # Número de factores latentes para scipy svds
+
+# Pesos del sistema híbrido (deben sumar 1.0)
+HYBRID_WEIGHT_USER_CF = 0.3
+HYBRID_WEIGHT_ITEM_CF = 0.3
+HYBRID_WEIGHT_SVD = 0.4
+
+# =====================================
 # PARÁMETROS DE DEEP LEARNING
 # =====================================
 
 # Neural Collaborative Filtering (NCF)
 DL_EMBEDDING_SIZE = 64  # Dimensión de embeddings de usuarios/productos
 DL_HIDDEN_LAYERS = [128, 64, 32]  # Capas ocultas del MLP
-DL_DROPOUT_RATE = 0.2  # Dropout para regularización
+DL_DROPOUT_RATE = 0.3  # Dropout para regularización (aumentado de 0.2 a 0.3)
 DL_LEARNING_RATE = 0.001  # Learning rate inicial
 DL_BATCH_SIZE = 256  # Tamaño de batch para entrenamiento
-DL_EPOCHS = 10  # Número de épocas (con early stopping)
+DL_EPOCHS = 50  # Número de épocas máximas (early stopping lo detendrá antes)
 DL_EARLY_STOPPING_PATIENCE = 5  # Paciencia para early stopping
-DL_WEIGHT_DECAY = 1e-5  # Regularización L2
+DL_WEIGHT_DECAY = 1e-4  # Regularización L2 (aumentado de 1e-5 a 1e-4)
 DL_GRADIENT_CLIP = 1.0  # Gradient clipping
+DL_USE_BATCH_NORM = True  # Usar Batch Normalization
+DL_LR_SCHEDULER_FACTOR = 0.5  # Factor de reducción del LR
+DL_LR_SCHEDULER_PATIENCE = 3  # Paciencia del scheduler
 
-# Deep Hybrid Recommender
-DEEP_HYBRID_MODEL_FILE = MODELS_DIR / 'deep_hybrid_model.pth'
-DEEP_HYBRID_ATTENTION_EPOCHS = 10  # Épocas para fine-tuning de atención
-DEEP_HYBRID_ATTENTION_LR = 0.0001  # Learning rate para attention (más bajo)
 
 # =====================================
 # PARÁMETROS DE VISUALIZACIÓN
@@ -307,11 +259,6 @@ def validate_config():
         warnings.append(f"⚠️  Dataset no encontrado: {DATASET_FILE}")
         warnings.append("   Ejecuta: python src/download_fashion.py")
 
-    # Verificar pesos del sistema híbrido
-    total_weight = HYBRID_WEIGHT_USER_CF + HYBRID_WEIGHT_ITEM_CF + HYBRID_WEIGHT_SVD
-    if abs(total_weight - 1.0) > 0.01:
-        issues.append(f"❌ Los pesos del sistema híbrido deben sumar 1.0 (suma actual: {total_weight})")
-
     # Verificar rangos válidos
     if MIN_RATING_SCORE < 1.0 or MAX_RATING_SCORE > 5.0:
         issues.append("❌ Rango de ratings inválido (debe estar entre 1.0 y 5.0)")
@@ -340,20 +287,12 @@ def print_config_summary():
     print(f"  - Test size: {TEST_SIZE * 100:.0f}%")
     print(f"  - Random state: {RANDOM_STATE}")
 
-    print("\n🤝 Collaborative Filtering:")
-    print(f"  - User-based neighbors: {USER_CF_K_NEIGHBORS}")
-    print(f"  - Item-based neighbors: {ITEM_CF_K_NEIGHBORS}")
-    print(f"  - Similarity metric: {USER_CF_SIMILARITY_METRIC}")
-
-    print("\n📐 SVD:")
-    print(f"  - Factores latentes: {SVD_K_FACTORS}")
-    print(f"  - Regularización: {SVD_REGULARIZATION}")
-
-    print("\n🎯 Sistema Híbrido:")
-    print(f"  - Peso User-CF: {HYBRID_WEIGHT_USER_CF}")
-    print(f"  - Peso Item-CF: {HYBRID_WEIGHT_ITEM_CF}")
-    print(f"  - Peso SVD: {HYBRID_WEIGHT_SVD}")
-    print(f"  - Estrategia: {HYBRID_STRATEGY}")
+    print("\n🧠 Deep Learning (NCF):")
+    print(f"  - Embedding size: {DL_EMBEDDING_SIZE}")
+    print(f"  - Hidden layers: {DL_HIDDEN_LAYERS}")
+    print(f"  - Learning rate: {DL_LEARNING_RATE}")
+    print(f"  - Batch size: {DL_BATCH_SIZE}")
+    print(f"  - Epochs: {DL_EPOCHS}")
 
     print("\n📈 Evaluación:")
     print(f"  - Top-N: {TOP_N}")

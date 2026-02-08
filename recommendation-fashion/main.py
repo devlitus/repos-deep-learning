@@ -1,6 +1,6 @@
 """
 Pipeline Principal - Sistema de Recomendación de Moda (Amazon Fashion Reviews)
-Ejecuta el pipeline completo: carga, EDA, CF, SVD, Híbrido
+Ejecuta el pipeline completo: carga, EDA, análisis de sparsity, NCF (Deep Learning)
 """
 
 import sys
@@ -52,7 +52,7 @@ def main():
     # =========================================================================
     print_section(1, "VALIDAR CONFIGURACIÓN")
 
-    from config import validate_config, print_config_summary
+    from config import validate_config, print_config_summary, MODELS_DIR
 
     success, issues, warnings_list = validate_config()
 
@@ -145,80 +145,12 @@ def main():
         sparsity_results = None
 
     # =========================================================================
-    # PASO 8: USER-BASED COLLABORATIVE FILTERING
+    # PASO 8: ENTRENAMIENTO NCF (Deep Learning)
     # =========================================================================
-    print_section(8, "USER-BASED COLLABORATIVE FILTERING")
+    print_section(8, "NEURAL COLLABORATIVE FILTERING (Deep Learning)")
 
-    user_sim = None
-    user_cf_eval = None
-    try:
-        from src.user_based_collaborative_filtering import run_user_based_cf
-        ub_results = run_user_based_cf(df_clean, rating_matrix)
-        user_sim = ub_results['similarity_df']
-        user_cf_eval = ub_results['evaluation']
-    except Exception as e:
-        print_error("User-Based CF", e)
+    ncf_eval = None
 
-    # =========================================================================
-    # PASO 9: ITEM-BASED COLLABORATIVE FILTERING
-    # =========================================================================
-    print_section(9, "ITEM-BASED COLLABORATIVE FILTERING")
-
-    product_sim = None
-    item_cf_eval = None
-    try:
-        from src.item_based_collaborative_filtering import run_item_based_cf
-        ib_results = run_item_based_cf(df_clean, rating_matrix)
-        product_sim = ib_results['similarity_df']
-        item_cf_eval = ib_results['evaluation']
-    except Exception as e:
-        print_error("Item-Based CF", e)
-
-    # =========================================================================
-    # PASO 10: MATRIX FACTORIZATION (SVD)
-    # =========================================================================
-    print_section(10, "MATRIX FACTORIZATION (SVD)")
-
-    U = sigma = Vt = None
-    svd_eval = None
-    try:
-        from src.matrix_factorization_svd import run_svd_analysis
-        svd_results = run_svd_analysis(df_clean, rating_matrix)
-        U = svd_results['U']
-        sigma = svd_results['sigma']
-        Vt = svd_results['Vt']
-        svd_eval = svd_results['evaluation']
-    except Exception as e:
-        print_error("SVD", e)
-
-    # =========================================================================
-    # PASO 11: SISTEMA HÍBRIDO
-    # =========================================================================
-    print_section(11, "SISTEMA HÍBRIDO DE RECOMENDACIÓN")
-
-    hybrid_eval = None
-    if user_sim is not None and product_sim is not None and U is not None:
-        try:
-            from src.hybrid_recommender_system import run_hybrid_system, compare_all_methods, visualize_hybrid
-            hybrid_results = run_hybrid_system(
-                df_clean, rating_matrix, user_sim, product_sim, U, sigma, Vt
-            )
-            hybrid_eval = hybrid_results['evaluation']
-        except Exception as e:
-            print_error("Sistema Híbrido", e)
-    else:
-        print("\n  ⚠️  Sistema Híbrido omitido: faltan componentes previos")
-        print("    Requiere: User-Based CF + Item-Based CF + SVD")
-
-    # =========================================================================
-    # PASO 12: DEEP HYBRID RECOMMENDER (Deep Learning)
-    # =========================================================================
-    print_section(12, "DEEP HYBRID RECOMMENDER (Deep Learning)")
-
-    deep_hybrid_eval = None
-    deep_hybrid_results = None
-
-    # Verificar que PyTorch esté disponible
     try:
         import torch
         pytorch_available = True
@@ -226,127 +158,32 @@ def main():
         pytorch_available = False
         print("\n  ⚠️  PyTorch no está instalado. Instala con: pip install torch")
 
-    # Verificar que surprise esté disponible para modelos tradicionales
-    try:
-        from surprise import KNNBasic, SVD
-        surprise_available = True
-    except ImportError:
-        surprise_available = False
-        print("\n  ⚠️  Surprise no está instalado. Instala con: pip install scikit-surprise")
+    if pytorch_available:
+        print("\n  ℹ️  Para entrenar el modelo NCF, ejecuta:")
+        print("    python train_ncf_only.py")
+        print("\n  Este script entrena el modelo de Deep Learning de forma independiente.")
 
-    if pytorch_available and surprise_available:
-        # Verificar que tengamos los modelos base necesarios
-        if user_sim is not None and product_sim is not None and U is not None:
-            try:
-                print("\n  🔄 Entrenando modelos base con Surprise para Deep Hybrid...")
+        # Verificar si ya existe un modelo entrenado
+        ncf_model_path = MODELS_DIR / 'ncf_model.pth'
+        ncf_metrics_path = REPORTS_DIR / 'ncf_metrics.json'
 
-                from surprise import Dataset, Reader
-                from surprise.model_selection import train_test_split as surprise_split
-
-                # Preparar datos para Surprise
-                reader = Reader(rating_scale=(1, 5))
-                surprise_data = Dataset.load_from_df(
-                    df_clean[['userId', 'productId', 'rating']],
-                    reader
-                )
-                trainset = surprise_data.build_full_trainset()
-
-                # Entrenar modelos base con Surprise
-                print("    Entrenando User-Based CF...")
-                from surprise import KNNBasic
-                user_cf_surprise = KNNBasic(
-                    sim_options={'name': 'cosine', 'user_based': True},
-                    k=20
-                )
-                user_cf_surprise.fit(trainset)
-
-                print("    Entrenando Item-Based CF...")
-                item_cf_surprise = KNNBasic(
-                    sim_options={'name': 'cosine', 'user_based': False},
-                    k=20
-                )
-                item_cf_surprise.fit(trainset)
-
-                print("    Entrenando SVD...")
-                from surprise import SVD as SurpriseSVD
-                svd_surprise = SurpriseSVD(
-                    n_factors=50,
-                    n_epochs=20,
-                    lr_all=0.005,
-                    reg_all=0.02
-                )
-                svd_surprise.fit(trainset)
-
-                # Ejecutar Deep Hybrid
-                from src.deep_hybrid_recommender import run_deep_hybrid_system, visualize_deep_hybrid_results
-
-                deep_hybrid_results = run_deep_hybrid_system(
-                    df_clean=df_clean,
-                    user_cf_model=user_cf_surprise,
-                    item_cf_model=item_cf_surprise,
-                    svd_model=svd_surprise
-                )
-
-                deep_hybrid_eval = deep_hybrid_results['evaluation']
-
-                print("\n  ✅ Deep Hybrid System entrenado exitosamente")
-                print(f"    RMSE: {deep_hybrid_eval['RMSE']:.4f}")
-                print(f"    MAE: {deep_hybrid_eval['MAE']:.4f}")
-
-            except Exception as e:
-                print_error("Deep Hybrid System", e)
-                import traceback
-                traceback.print_exc()
+        if ncf_model_path.exists():
+            print(f"\n  ✅ Modelo NCF encontrado: {ncf_model_path.name}")
+            if ncf_metrics_path.exists():
+                import json
+                with open(str(ncf_metrics_path), 'r') as f:
+                    ncf_eval = json.load(f)
+                if 'test_rmse' in ncf_eval:
+                    print(f"    RMSE: {ncf_eval['test_rmse']:.4f}")
         else:
-            print("\n  ⚠️  Deep Hybrid omitido: faltan componentes previos")
-            print("    Requiere: User-Based CF + Item-Based CF + SVD")
+            print(f"\n  ⚠️  No se encontró modelo NCF entrenado")
     else:
-        print("\n  ⚠️  Deep Hybrid omitido: dependencias faltantes")
-        if not pytorch_available:
-            print("    - Instala PyTorch: pip install torch")
-        if not surprise_available:
-            print("    - Instala Surprise: pip install scikit-surprise")
+        print("\n  ⚠️  NCF omitido: PyTorch no disponible")
 
     # =========================================================================
-    # PASO 13: COMPARACIÓN FINAL DE TODOS LOS MÉTODOS
+    # PASO 9: RESUMEN Y CONCLUSIONES
     # =========================================================================
-    print_section(13, "COMPARACIÓN FINAL DE TODOS LOS MÉTODOS")
-
-    # Recopilar resultados
-    all_results = {}
-    if user_cf_eval and user_cf_eval.get('RMSE') is not None:
-        all_results['User-Based CF'] = user_cf_eval
-    if item_cf_eval and item_cf_eval.get('RMSE') is not None:
-        all_results['Item-Based CF'] = item_cf_eval
-    if svd_eval and svd_eval.get('RMSE') is not None:
-        all_results['SVD'] = svd_eval
-    if hybrid_eval and hybrid_eval.get('RMSE') is not None:
-        all_results['Hybrid'] = hybrid_eval
-    if deep_hybrid_eval and deep_hybrid_eval.get('RMSE') is not None:
-        all_results['Deep Hybrid'] = deep_hybrid_eval
-
-    if all_results:
-        try:
-            from src.hybrid_recommender_system import compare_all_methods, visualize_hybrid
-            comparison = compare_all_methods(all_results)
-
-            # Generar visualización comparativa
-            if hybrid_eval:
-                visualize_hybrid(hybrid_eval, comparison)
-
-            # Visualizar resultados de Deep Hybrid
-            if deep_hybrid_results:
-                from src.deep_hybrid_recommender import visualize_deep_hybrid_results
-                visualize_deep_hybrid_results(deep_hybrid_results, comparison)
-        except Exception as e:
-            print_error("Comparación final", e)
-    else:
-        print("\n  ⚠️  No hay métricas disponibles para comparar")
-
-    # =========================================================================
-    # PASO 14: RESUMEN Y CONCLUSIONES
-    # =========================================================================
-    print_section(14, "RESUMEN Y CONCLUSIONES")
+    print_section(9, "RESUMEN Y CONCLUSIONES")
 
     elapsed_time = time.time() - start_time
 
@@ -360,10 +197,10 @@ def main():
     print(f"    Usuarios: {df_clean['user_idx'].nunique():,}")
     print(f"    Productos: {df_clean['product_idx'].nunique():,}")
 
-    if all_results:
-        print(f"\n  📈 Métricas de los Modelos:")
-        for name, metrics in all_results.items():
-            print(f"    {name}: RMSE={metrics['RMSE']:.4f}, MAE={metrics['MAE']:.4f}")
+    if ncf_eval:
+        print(f"\n  📈 Modelo NCF:")
+        if 'test_rmse' in ncf_eval:
+            print(f"    Test RMSE: {ncf_eval['test_rmse']:.4f}")
 
     # Reportes generados
     from config import REPORTS_DIR
@@ -379,9 +216,10 @@ def main():
     print(f"  {'=' * 60}")
 
     print(f"\n  📌 Próximos pasos:")
-    print(f"    1. Revisar gráficos en reports/")
-    print(f"    2. Ejecutar la app web: streamlit run web/app.py")
-    print(f"    3. Explorar notebooks en notebooks/")
+    print(f"    1. Entrenar modelo NCF: python train_ncf_only.py")
+    print(f"    2. Revisar gráficos en reports/")
+    print(f"    3. Ejecutar la app web: streamlit run web/app.py")
+    print(f"    4. Explorar notebooks en notebooks/")
     print(f"\n  {'=' * 60}\n")
 
 

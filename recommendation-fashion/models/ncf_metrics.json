@@ -1,35 +1,80 @@
 {
   "model_type": "Neural Collaborative Filtering",
   "architecture": {
-    "n_users": 4000,
-    "n_products": 9999,
+    "n_users": 5000,
+    "n_products": 15225,
     "embedding_dim": 64,
     "hidden_layers": [
       128,
       64,
       32
     ],
-    "total_params": 922817,
-    "trainable_params": 922817
+    "dropout_rate": 0.3,
+    "batch_normalization": true,
+    "total_params": 1321729,
+    "trainable_params": 1321729
   },
   "hyperparameters": {
     "batch_size": 256,
     "learning_rate": 0.001,
-    "epochs": 10
+    "weight_decay": 0.0001,
+    "epochs": 50,
+    "epochs_trained": 9,
+    "early_stopping_patience": 5,
+    "gradient_clipping": 1.0
   },
   "results": {
-    "train_rmse": 0.3390724670773438,
-    "test_rmse": 0.6780930058539261,
-    "best_test_rmse": 0.6089677739159285,
-    "best_epoch": 3
+    "train_rmse_final": 0.40455705602511804,
+    "val_rmse_final": 0.7547553550118985,
+    "best_val_rmse": 0.7268698253883822,
+    "best_epoch": 4,
+    "test_rmse": 0.7631308248542559,
+    "train_val_gap": 0.35019829898678045
   },
   "training": {
-    "time_seconds": 16.274423,
-    "device": "cpu"
+    "time_seconds": 26.660059,
+    "device": "cpu",
+    "early_stopped": true
   },
   "dataset": {
-    "total_interactions": 100000,
-    "train_size": 80000,
-    "test_size": 20000
+    "total_interactions": 125000,
+    "train_size": 87550,
+    "val_size": 18611,
+    "test_size": 18656
+  },
+  "history": {
+    "train_rmse": [
+      1.115310271355551,
+      0.7746810337415188,
+      0.6710104001348103,
+      0.6143815326318046,
+      0.566861287695878,
+      0.5250879035180505,
+      0.4858475951685975,
+      0.4571581984596464,
+      0.40455705602511804
+    ],
+    "val_rmse": [
+      0.8452241050178223,
+      0.7440010072180196,
+      0.7282436193337685,
+      0.7268698253883822,
+      0.7375938324814759,
+      0.751313662809956,
+      0.7616448120749145,
+      0.7614429492688584,
+      0.7547553550118985
+    ],
+    "learning_rates": [
+      0.001,
+      0.001,
+      0.001,
+      0.001,
+      0.001,
+      0.001,
+      0.001,
+      0.001,
+      0.0005
+    ]
   }
 }
