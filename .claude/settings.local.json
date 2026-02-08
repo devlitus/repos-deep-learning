@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(git -C \"D:\\\\work\\\\repos-deep-learning\" diff HEAD -- \"recommendation-fashion/main.py\")",
+      "Bash(python -c:*)",
+      "Bash(py -c:*)",
+      "Bash(where:*)",
+      "Bash(python3:*)",
+      "Bash(ls -la \"d:\\\\work\\\\repos-deep-learning\\\\recommendation-fashion\\\\web\"\" 2>/dev/null || dir \"d:workrepos-deep-learningrecommendation-fashionweb \")",
+      "Bash(cmd /c \"dir d:\\\\work\\\\repos-deep-learning\\\\recommendation-fashion\\\\web\")"
+    ]
+  }
+}
